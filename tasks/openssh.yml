@@ -1,0 +1,20 @@
+- name: install $item
+  action: yum pkg=$item state=installed
+  with_items:
+    - openssh
+    - openssh-clients
+    - openssh-server
+  notify:
+    - restart sshd
+- name: manage ssh_config
+  action: copy src=files/openssh/ssh_config dest=/etc/ssh/ssh_config
+          owner=root group=root mode=0644
+  notify:
+    - restart sshd
+- name: manage ssh_config
+  action: copy src=files/openssh/sshd_config dest=/etc/ssh/sshd_config
+          owner=root group=root mode=0600
+  notify:
+    - restart sshd
+- name: ensure sshd is running
+  action: service name=sshd state=running

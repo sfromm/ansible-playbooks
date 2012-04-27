@@ -1,0 +1,5 @@
+- name: copy sysctl.conf
+  action: copy src=files/sysctl/sysctl.conf dest=/etc/sysctl.conf
+          owner=root group=root mode=0644
+  notify:
+    - reload sysctl

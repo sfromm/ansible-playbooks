@@ -1,0 +1,5 @@
+- name: restart sshd
+  action: service name=sshd state=restarted
+
+- name: reload sysctl
+  action: command /sbin/sysctl -q -p /etc/sysctl.conf
