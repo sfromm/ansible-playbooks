@@ -7,13 +7,19 @@
   notify:
     - restart sshd
 - name: manage ssh_config
-  action: copy src=files/openssh/ssh_config dest=/etc/ssh/ssh_config
+  action: copy src=$file dest=/etc/ssh/ssh_config
           owner=root group=root mode=0644
+  first_available_file:
+    - files/openssh/ssh_config.$ansible_distribution
+    - files/openssh/ssh_config
   notify:
     - restart sshd
 - name: manage ssh_config
-  action: copy src=files/openssh/sshd_config dest=/etc/ssh/sshd_config
+  action: copy src=$file dest=/etc/ssh/sshd_config
           owner=root group=root mode=0600
+  first_available_file:
+    - files/openssh/sshd_config.$ansible_distribution
+    - files/openssh/sshd_config
   notify:
     - restart sshd
 - name: ensure sshd is running
