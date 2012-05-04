@@ -1,0 +1,14 @@
+# Set up AIDE
+---
+- name: Install aide
+  action: yum pkg=aide state=installed
+
+- name: Copy aide.conf
+  action: copy src=$file dest=/etc/aide.conf owner=root group=root mode=0644
+
+- name: Add cron job to run aide --check
+  action: copy src=files/aide/aide-check.sh dest=/etc/cron.daily/aide-check.cron
+          owner=root group=root mode=0755
+
+- name: Initialize aide db
+  action: command /usr/sbin/aide --init creates=/var/lib/aide/aide.db.new.gz
