@@ -3,7 +3,7 @@
 # Date: Fri Sep 10 11:35:41 BST 2004
 
 # This is the email address reports get mailed to
-MAILTO=systems@nero.net
+MAILTO=root@localhost
 
 # Set this to suppress mailings when there's nothing to report
 QUIETREPORTS=1
