@@ -6,21 +6,24 @@
     - openssh-server
   notify:
     - restart sshd
+
 - name: manage ssh_config
   action: copy src=$file dest=/etc/ssh/ssh_config
           owner=root group=root mode=0644
   first_available_file:
-    - files/openssh/ssh_config.$ansible_distribution
-    - files/openssh/ssh_config
+    - openssh/files/ssh_config.$ansible_distribution
+    - openssh/files/ssh_config
   notify:
     - restart sshd
+
 - name: manage ssh_config
   action: copy src=$file dest=/etc/ssh/sshd_config
           owner=root group=root mode=0600
   first_available_file:
-    - files/openssh/sshd_config.$ansible_distribution
-    - files/openssh/sshd_config
+    - openssh/files/sshd_config.$ansible_distribution
+    - openssh/files/sshd_config
   notify:
     - restart sshd
+
 - name: ensure sshd is running
   action: service name=sshd state=running
