@@ -1,0 +1,13 @@
+---
+- hosts: logcentral
+  user: root
+
+  vars_files:
+    - ../global_vars.yml
+    - vars/main.yml
+
+  tasks:
+    - include: tasks/setup.yml
+
+#  handlers:
+#    - include: handlers/main.yml
