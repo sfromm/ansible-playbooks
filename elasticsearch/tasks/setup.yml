@@ -1,0 +1,45 @@
+---
+- name: Install java dependency
+  action: yum pkg=${java_pkg} state=installed
+
+- name: Download elasticsearch release
+  action: get_url url=${es_url} dest=/tmp/${es_file} mode=0644
+
+- name: Unpack elasticsearch
+  action: command tar -C /opt -xzf /tmp/${es_file} creates=/opt/elasticsearch-${es_version}
+
+- name: Symlink /opt/elasticsearch to current version
+  action: file src=/opt/elasticsearch-${es_version} dest=/opt/elasticsearch state=link
+
+- name: Checkout elasticsearch-servicewrapper
+  action: git repo=${es_servicewrapper_url} dest=/opt/elasticsearch-servicewrapper version=${es_servicewrapper_version}
+
+- name: Mirror /opt/elasticsearch-servicewrapper/service to /opt/elasticsearch/bin/
+  action: command /usr/bin/rsync -a /opt/elasticsearch-servicewrapper/service /opt/elasticsearch/bin/ creates=/opt/elasticsearch/bin/service 
+
+- name: Create elasticsearch user
+  action: user name=elasticsearch comment="elasticsearch user" home=/opt/elasticsearch system=yes createhome=no
+
+- name: Create necessary directories
+  action: file path=/opt/elasticsearch-${es_version}/$item state=directory owner=elasticsearch
+  with_items:
+    - data
+    - log
+
+- name: Create /var/run/elasticsearch directory
+  action: file path=/var/run/elasticsearch state=directory owner=elasticsearch group=root
+
+- name: Install elasticsearch config
+  action: copy src=files/elasticsearch.yml dest=/opt/elasticsearch/config/elasticsearch.yml
+
+- name: Install es servicewrapper config
+  action: copy src=files/elasticsearch.conf dest=/opt/elasticsearch/bin/service/elasticsearch.conf
+
+- name: Install es-nofile.conf 
+  action: copy src=files/es-nofile.conf dest=/etc/security/limits.d/es-nofile.conf
+
+- name: Install es servicewrapper init file
+  action: command /opt/elasticsearch/bin/service/elasticsearch install creates=/etc/init.d/elasticsearch chdir=/opt/elasticsearch/bin/service
+
+- name: Enable and start elasticsearch service
+  action: service name=elasticsearch enabled=yes state=started
