@@ -1,0 +1,5 @@
+---
+# logstash depends on specific version of elasticsearch
+# Tie them up here.
+es_version: 0.19.8
+logstash_version: 1.1.1

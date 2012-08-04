@@ -1,6 +1,5 @@
 ---
 java_pkg: java-1.7.0-openjdk 
-es_version: 0.19.8
 es_file: elasticsearch-${es_version}.tar.gz
 es_url: https://github.com/downloads/elasticsearch/elasticsearch/${es_file}
 es_servicewrapper_version: d47d048
