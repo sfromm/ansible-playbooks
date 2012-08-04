@@ -20,11 +20,11 @@
 - name: Create elasticsearch user
   action: user name=elasticsearch comment="elasticsearch user" home=/opt/elasticsearch system=yes createhome=no
 
-- name: Create necessary directories
-  action: file path=/opt/elasticsearch-${es_version}/$item state=directory owner=elasticsearch
-  with_items:
-    - data
-    - log
+- name: Create elasticsearch data directory
+  action: file path=/opt/elasticsearch-${es_version}/data state=directory owner=elasticsearch
+
+- name: Create /var/log/elasticsearch directory
+  action: file path=/var/log/elasticsearch state=directory owner=elasticsearch
 
 - name: Create /var/run/elasticsearch directory
   action: file path=/var/run/elasticsearch state=directory owner=elasticsearch group=root

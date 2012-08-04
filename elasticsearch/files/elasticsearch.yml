@@ -29,5 +29,5 @@
 #discovery.zen.ping.multicast.enabled: false
 #discovery.zen.ping.unicast.hosts: ["host1", "host2"]
 path:
-    logs: /opt/elasticsearch/log
+    logs: /var/log/elasticsearch
     data: /opt/elasticsearch/data
