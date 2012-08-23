@@ -29,12 +29,12 @@
 - name: Create /var/run/elasticsearch directory
   action: file path=/var/run/elasticsearch state=directory owner=elasticsearch group=root
 
-- name: Install elasticsearch config
+- name: Deploy elasticsearch config
   action: copy src=files/elasticsearch.yml dest=/opt/elasticsearch/config/elasticsearch.yml
   notify:
     - restart elasticsearch
 
-- name: Install elasticsearch servicewrapper config
+- name: Deploy elasticsearch servicewrapper config
   action: copy src=files/elasticsearch.conf dest=/opt/elasticsearch/bin/service/elasticsearch.conf
   notify:
     - restart elasticsearch
