@@ -6,12 +6,13 @@
 - name: Copy aide.conf
   action: copy src=$file dest=/etc/aide.conf owner=root group=root mode=0644
   first_available_file:
-    - aide.conf.$ansible_distribution
-    - aide.conf
+    - aide/files/aide.conf.$inventory_hostname
+    - aide/files/aide.conf.$ansible_distribution
+    - aide/files/aide.conf
+  notify:
+    - init aide database
 
 - name: Add cron job to run aide --check
-  action: copy src=aide/files/aide-check.sh dest=/etc/cron.daily/aide-check.cron
+  action: copy 
+          src=aide/files/aide-check.sh dest=/etc/cron.daily/aide-check.cron
           owner=root group=root mode=0755
-
-- name: Initialize aide db
-  action: command /usr/sbin/aide --init creates=/var/lib/aide/aide.db.new.gz

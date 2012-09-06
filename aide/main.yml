@@ -1,0 +1,12 @@
+---
+- hosts: all
+
+  vars_files:
+    - global_vars.yml
+    - aide/vars/main.yml
+
+  tasks:
+    - include: aide/tasks/setup.yml
+
+  handlers:
+    - include: aide/handlers/main.yml

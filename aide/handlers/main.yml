@@ -1,0 +1,8 @@
+---
+- name: init aide database
+  action: command /usr/sbin/aide --init creates=$aide_new_db
+  notify:
+    - new aide database
+
+- name: new aide database
+  action: command /usr/bin/cp -p $aide_new_db $aide_db creates=$aide_db
