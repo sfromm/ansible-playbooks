@@ -1,9 +1,3 @@
 ---
 # This is meant to demonstrate ansible local usage.
-- hosts: all
-  user: root
-  tasks:
-    - include: tasks/openssh.yml
-    - include: tasks/sysctl.yml
-  handlers:
-    - include: handlers/handlers.yml
+- include: openssh/setup.yml
