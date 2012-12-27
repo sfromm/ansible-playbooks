@@ -30,17 +30,17 @@
   action: file path=/var/run/elasticsearch state=directory owner=elasticsearch group=root
 
 - name: Deploy elasticsearch config
-  action: copy src=files/elasticsearch.yml dest=/opt/elasticsearch/config/elasticsearch.yml
+  action: copy src=../files/elasticsearch/elasticsearch.yml dest=/opt/elasticsearch/config/elasticsearch.yml
   notify:
     - restart elasticsearch
 
 - name: Deploy elasticsearch servicewrapper config
-  action: copy src=files/elasticsearch.conf dest=/opt/elasticsearch/bin/service/elasticsearch.conf
+  action: copy src=../files/elasticsearch/elasticsearch.conf dest=/opt/elasticsearch/bin/service/elasticsearch.conf
   notify:
     - restart elasticsearch
 
 - name: Install es-nofile.conf 
-  action: copy src=files/es-nofile.conf dest=/etc/security/limits.d/es-nofile.conf
+  action: copy src=../files/elasticsearch/es-nofile.conf dest=/etc/security/limits.d/es-nofile.conf
 
 - name: Install elasticsearch servicewrapper init file
   action: command /opt/elasticsearch/bin/service/elasticsearch install creates=/etc/init.d/elasticsearch chdir=/opt/elasticsearch/bin/service
