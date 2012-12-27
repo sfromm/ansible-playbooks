@@ -16,7 +16,7 @@
     - share
 
 - name: Copy logstash.conf into place
-  action: copy src=files/logstash.conf dest=/opt/logstash/etc/logstash.conf owner=root group=root mode=0644
+  action: copy src=../files/logstash/logstash.conf dest=/opt/logstash/etc/logstash.conf owner=root group=root mode=0644
 
 - name: Create /var/log/logstash directory
   action: file path=/var/log/logstash owner=root group=root mode=0755 state=directory
