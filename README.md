@@ -7,9 +7,6 @@ Guidelines are still a work in progress.  For now, refer to this
 [thread][] and [ansible documentation][].  This repository likely depends
 on features present in [ansible/devel][].
 
-At this time, the _elasticsearch_ and _logstash_ playbooks most closely
-adhere to the current Ansible [best practices][].
-
 [ansible]: http://ansible.github.com
 [thread]: https://groups.google.com/d/topic/ansible-project/BwCyg7-are4/discussion
 [ansible/devel]: https://github.com/ansible/ansible
