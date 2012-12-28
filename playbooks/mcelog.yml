@@ -1,0 +1,8 @@
+---
+- hosts: all
+
+  vars_files:
+    - ../vars/global_vars.yml
+
+  tasks:
+    - include: ../tasks/mcelog-setup.yml

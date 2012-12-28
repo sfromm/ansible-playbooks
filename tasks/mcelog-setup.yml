@@ -1,0 +1,9 @@
+---
+- name: install package mcelog
+  action: yum name=mcelog state=installed
+
+- name: create /dev/mcelog
+  action: command mknod /dev/mcelog c 10 227 creates=/dev/mcelog
+
+- name: start mcelogd
+  action: service name=mcelogd state=started
