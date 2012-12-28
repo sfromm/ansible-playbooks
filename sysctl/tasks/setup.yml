@@ -1,8 +1,0 @@
-- name: copy sysctl.conf
-  action: copy src=$file dest=/etc/sysctl.conf
-          owner=root group=root mode=0644
-  first_available_file:
-    - sysctl/files/sysctl.conf.$ansible_hostname
-    - sysctl/files/sysctl.conf
-  notify:
-    - reload sysctl
