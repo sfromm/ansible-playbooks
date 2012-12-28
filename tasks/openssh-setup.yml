@@ -11,8 +11,8 @@
   action: copy src=$file dest=/etc/ssh/ssh_config
           owner=root group=root mode=0644 backup=yes
   first_available_file:
-    - $pb_path/openssh/files/ssh_config.$ansible_distribution
-    - $pb_path/openssh/files/ssh_config
+    - ../files/openssh/ssh_config.$ansible_distribution
+    - ../files/openssh/ssh_config
   notify:
     - restart sshd
 
@@ -20,8 +20,8 @@
   action: copy src=$file dest=/etc/ssh/sshd_config
           owner=root group=root mode=0600 backup=yes
   first_available_file:
-    - $pb_path/openssh/files/sshd_config.$ansible_distribution
-    - $pb_path/openssh/files/sshd_config
+    - ../files/openssh/files/sshd_config.$ansible_distribution
+    - ../files/openssh/files/sshd_config
   notify:
     - restart sshd
 
