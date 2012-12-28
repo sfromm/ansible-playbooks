@@ -1,0 +1,6 @@
+---
+- name: Install iperf
+  action: yum pkg=iperf state=installed
+
+- name: Start iperf as a daemon
+  action: command /usr/bin/iperf --server --daemon

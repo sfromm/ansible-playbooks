@@ -1,0 +1,6 @@
+---
+- hosts: all
+
+  tasks:
+
+    - include ../tasks/iperf-setup.yml
