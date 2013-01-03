@@ -1,0 +1,10 @@
+# System configuration file for Rootkit Hunter which
+# stores RPM system specifics for cron run, etc.
+#
+#    MAILTO= <email address to send scan report>
+# DIAG_SCAN= no  - perform  normal  report scan
+#            yes - perform detailed report scan
+#                  (includes application check)
+
+MAILTO=root@localhost
+DIAG_SCAN=no

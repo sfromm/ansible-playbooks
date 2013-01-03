@@ -1,0 +1,23 @@
+---
+- hosts: all
+
+  vars_files:
+    - ../vars/global_vars.yml
+
+  tasks:
+
+    - name: Install rkhunter
+      action: yum name=rkhunter state=installed
+      notify:
+        - rkhunter propupd
+
+    - name: Deploy rkhunter.sysconfig
+      action: copy src=$file dest=/etc/sysconfig/rkhunter
+              owner=root group=root mode=0640
+      first_available_file:
+        - ../files/rkhunter/rkhunter.sysconfig.${ansible_hostname}
+        - ../files/rkhunter/rkhunter.sysconfig.${ansible_distribution}
+        - ../files/rkhunter/rkhunter.sysconfig
+
+  handlers:
+    - include: ../handlers/rkhunter.yml
