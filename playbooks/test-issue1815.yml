@@ -1,0 +1,19 @@
+---
+- hosts: localhost
+  connection: local
+
+  tasks:
+    - name: test file copy
+      action: copy src=$file dest=/tmp/local.yml
+      first_available_file:
+        - ../local.yml.${ansible_hostname}
+        - ../local.yml
+
+- hosts: localhost
+ 
+  tasks:
+    - name: test file copy
+      action: copy src=$file dest=/tmp/local.yml
+      first_available_file:
+        - ../local.yml.${ansible_hostname}
+        - ../local.yml
