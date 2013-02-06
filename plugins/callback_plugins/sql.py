@@ -42,10 +42,10 @@ class AnsibleResult(Base):
     __tablename__ = tablename
 
     id = Column(Integer, primary_key=True)
-    timestamp = Column(TIMESTAMP, default=now())
+    timestamp = Column(DateTime, default=now())
     hostname = Column(String)
     module = Column(String)
-    data = Column(String)
+    data = Column(Text)
     result = Column(String)
 
     def __init__(self, hostname, module, result, data, timestamp=now()):
