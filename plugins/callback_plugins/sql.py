@@ -32,16 +32,14 @@ def now():
     return datetime.datetime.now()
 
 config = ansible.constants.load_config_file()
+uri = ansible.constants.get_config(config, 'sqlalchemy', 'uri', None, 'sqlite://')
+tablename = ansible.constants.get_config(config, 'sqlalchemy', None, 'tablename', 'host_result')
 
-try:
-    uri = config.get('sqlalchemy', 'uri')
-except:
-    uri = 'sqlite://'
 engine = create_engine(uri)
 Base = declarative_base()
 
 class AnsibleResult(Base):
-    __tablename__ = 'result'
+    __tablename__ = tablename
 
     id = Column(Integer, primary_key=True)
     timestamp = Column(TIMESTAMP, default=now())
