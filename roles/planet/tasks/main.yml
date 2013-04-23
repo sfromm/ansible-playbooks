@@ -1,0 +1,35 @@
+- name: clone planet venus repo
+  action: git repo=$planet_repo dest=$planet_dest
+
+- name: create publish directory
+  action: file path=$planet_pub_dir state=directory
+
+#- name: run planet tests for sanity
+#  action: command chdir=$planet_dest python runtests.py
+
+- name: create planetoid images directory
+  action: file path=$planet_pub_dir/$item/images state=directory
+  with_items: $planets
+
+- include: ../tasks/planet-setup.yml dir=filters planetoid=$item 
+  with_items: planetoids.keys()
+
+- include: ../tasks/planet-setup.yml dir=theme planetoid=$item 
+  with_items: $planets
+
+- include: ../tasks/planet-setup.yml dir=theme/js planetoid=$item 
+  with_items: $planets
+
+- include: ../tasks/planet-setup.yml dir=theme/images planetoid=$item 
+  with_items: $planets
+
+- name: create planetoid configs
+  action: template src=../templates/planet.ini.j2
+          dest=$planet_pub_dir/$item/planet.ini
+  with_items: $planets
+
+- name: run planet.py on planetoids
+  with_items: $planets
+  action: command chdir=$planet_pub_dir/$item
+          python ${planet_dest}/planet.py planet.ini
+          PYTHONPATH="$planet_dest"

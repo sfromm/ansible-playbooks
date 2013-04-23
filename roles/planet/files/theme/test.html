@@ -1,0 +1,139 @@
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+  <title>Unit tests for Planet Mg javascript</title>
+  <link rel="stylesheet" href="planet.css" type="text/css">
+  <script type="text/javascript" src="js/planet.js"></script>
+  <script type="text/javascript" src="js/jsUnitCore.js"></script>
+  <script type="text/javascript" src="js/tests.js"></script>
+  <script type="text/javascript" src="js/runner.js"></script>
+  <style type="text/css">
+    div#testoutput {
+      border: 1px solid blue;
+      padding: 0.5ex;
+    }
+    div#testoutput div.header {
+      margin-bottom: 0.5ex;
+      border-bottom: 1px dotted gray;
+    }
+    div#testoutput div.footer {
+      clear: both;
+      margin-top: 0.5ex;
+      border-top: 1px dotted gray;
+    }
+    div#testoutput div.test {
+      clear: both;
+      padding: 0.2ex;
+    }
+    div#testoutput div.test.even {
+      background: #eee;
+    }
+    div#testoutput .testname {
+      float: left;
+    }
+    div#testoutput .success,
+    div#testoutput .failure,
+    div#testoutput .error {
+      float: right;
+    }
+    div#testoutput .success {
+      color: green;
+    }
+    div#testoutput .failure,
+    div#testoutput .error {
+      color: red;
+    }
+    div#testoutput .message {
+      clear: both;
+      display: block;
+      padding-left: 2ex;
+      font-size: smaller;
+      color: #440000;
+    }
+  </style>
+</head>
+<body onload="runAllTests();">
+  <h1>Unit tests for Planet Mg javascript</h1>
+
+  <p>
+    <a style="float:right" accesskey="R" title="Reload page (Alt+R)"
+       href="javascript:window.location.reload()">Refresh</a>
+    You can also use <a href="http://www.jsunit.net/">JsUnit</a> to run this file.
+  </p>
+  
+  <div id="testoutput">
+  </div>
+
+  <p>Test data follows</p>
+
+  <div class="daygroup">
+    <h2 class="foo">Some day</h2>
+
+    <div class="channelgroup">
+      <h3 class="foo">Some channel</h3>
+
+      <div class="entrygroup" id="id1">
+        <h4 class="foo" onclick="javascript:toggle(this.parentNode)">Some entry</h4>
+        <div class="entry">
+          Some text and a span <span class="date" id="nontimelink">
+            2001-01-01 01:01 +12:34</span> that should not be changed.
+        </div>
+        <p class="date" onclick="javascript:toggle(this.parentNode)">
+          <span class="date" id="timelink">2005-03-12 14:52</span>
+        </p>
+      </div>
+
+      <div class="entrygroup" id="id2">
+        <h4 class="foo" onclick="javascript:toggle(this.parentNode)">Some entry</h4>
+        <div class="entry">
+          Some text
+        </div>
+        <p class="date" onclick="javascript:toggle(this.parentNode)">
+          <span class="date">2005-03-12 14:52</span>
+        </p>
+      </div>
+
+    </div>
+
+    <div class="channelgroup">
+      <h3 class="bar">Some channel</h3>
+
+      <div class="entrygroup" id="id3">
+        <h4 class="bar" onclick="javascript:toggle(this.parentNode)">Some entry</h4>
+        <div class="entry">
+          Some text
+        </div>
+        <p class="date" onclick="javascript:toggle(this.parentNode)">
+          <span class="date">2005-03-12 14:52</span>
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <div class="daygroup">
+    <h2 class="foo">Some day</h2>
+
+    <div class="channelgroup">
+      <h3 class="baz">Some channel</h3>
+
+      <div class="entrygroup" id="id4">
+        <h4 class="baz" onclick="javascript:toggle(this.parentNode)">Some entry</h4>
+        <div class="entry">
+          <p>Some text</p>
+
+          <h1>Some evil h1 inside an entry</h1>
+          <h2>Some evil h2 inside an entry</h2>
+          <h3>Some evil h3 inside an entry</h3>
+          <h4>Some evil h4 inside an entry</h4>
+
+        </div>
+        <p class="date" onclick="javascript:toggle(this.parentNode)">
+          <span class="date">2005-03-12 14:52</span>
+        </p>
+      </div>
+
+    </div>
+  </div>
+
+</body>
+</html>

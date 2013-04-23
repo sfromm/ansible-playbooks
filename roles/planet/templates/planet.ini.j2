@@ -1,0 +1,40 @@
+# See http://www.intertwingly.net/code/venus/docs/config.html
+[Planet]
+name = planet | {{ planetoids[item].name }}
+link = http://example.net
+owner_name = sf
+owner_email = sf @ zoo
+
+# cache_directory: Where cached feeds are stored
+# log_level: One of DEBUG, INFO, WARNING, ERROR or CRITICAL
+# feed_timeout: number of seconds to wait for any given feed
+cache_directory = {{ planet_pub_dir }}/{{ item }}/cache
+log_level = {{ planetoids[item].log_level }}
+feed_timeout = {{ planetoids[item].feed_timeout }}
+
+# output_theme: "theme" of the output
+# output_dir: Directory to place output files
+# items_per_page: How many items to put on each page
+output_theme = {{ planet_pub_dir }}/{{ item }}/theme
+output_dir = {{ planet_pub_dir }}/{{ item }}/
+filter_directories = {{ planet_pub_dir }}/{{ item }}/filters
+template_directories = {{ planet_pub_dir }}/{{ item }}/theme
+items_per_page = 100
+
+# If non-zero, all feeds which have not been updated in the indicated
+# number of days will be marked as inactive
+activity_threshold = 90
+
+# Don't let any one feed monopolize the output (symptom often occurs when
+# somebody 'migrates' their weblog.
+# Keep high initially, since I subscribe to blog aggregators
+new_feed_items = 50
+
+{% for feed in planetoids[item].feeds %}
+[{{ feed.url }}]
+name = {{ feed.name }}
+{% if 'filters' in feed %}
+filters = {{ feed.filters }}
+{% endif %}
+
+{% endfor %}
