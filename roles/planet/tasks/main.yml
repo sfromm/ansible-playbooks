@@ -9,27 +9,27 @@
 
 - name: create planetoid images directory
   action: file path=$planet_pub_dir/$item/images state=directory
-  with_items: $planets
+  with_items: planetoids.keys()
 
 - include: ../tasks/planet-setup.yml dir=filters planetoid=$item 
   with_items: planetoids.keys()
 
 - include: ../tasks/planet-setup.yml dir=theme planetoid=$item 
-  with_items: $planets
+  with_items: planetoids.keys()
 
 - include: ../tasks/planet-setup.yml dir=theme/js planetoid=$item 
-  with_items: $planets
+  with_items: planetoids.keys()
 
 - include: ../tasks/planet-setup.yml dir=theme/images planetoid=$item 
-  with_items: $planets
+  with_items: planetoids.keys()
 
 - name: create planetoid configs
   action: template src=../templates/planet.ini.j2
           dest=$planet_pub_dir/$item/planet.ini
-  with_items: $planets
+  with_items: planetoids.keys()
 
 - name: run planet.py on planetoids
-  with_items: $planets
+  with_items: planetoids.keys()
   action: command chdir=$planet_pub_dir/$item
           python ${planet_dest}/planet.py planet.ini
           PYTHONPATH="$planet_dest"

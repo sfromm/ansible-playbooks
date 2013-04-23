@@ -6,13 +6,6 @@ planet_dest: /home/stephenf/Source/venus
 planet_venv: /home/stephenf/Public/venus_venv
 staging_dir: /tmp/planets
 planet_pub_dir: /home/stephenf/public_html/planets
-planets:
-    - news-world
-    - news-tech
-    - listen
-    - potpourri
-    - listen
-
 planet:
     name: Spigot
     log_level: INFO
