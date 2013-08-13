@@ -1,4 +1,0 @@
----
-- name: rsync $dir to planetoid $planetoid
-  local_action: command rsync -e ssh -aH 
-                roles/planet/files/$dir/ ${inventory_hostname}:$planet_pub_dir/$planetoid/$dir/ 
