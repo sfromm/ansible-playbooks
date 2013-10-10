@@ -1,0 +1,54 @@
+---
+- name: install java dependency
+  action: yum pkg={{ java_pkg }} state=installed
+
+- name: download elasticsearch release
+  action: get_url url={{es_url}} dest=/tmp/{{es_file}} mode=0644
+
+- name: unpack elasticsearch to /opt
+  action: command tar -C /opt -xzf /tmp/{{es_file}} 
+          creates=/opt/elasticsearch-{{es_version}}
+  register: es_tar
+
+- name: symlink /opt/elasticsearch to current version
+  action: file src=/opt/elasticsearch-{{es_version}} dest=/opt/elasticsearch state=link
+
+- name: checkout elasticsearch-servicewrapper
+  action: git repo={{es_servicewrapper.url}} dest=/opt/elasticsearch-servicewrapper version={{es_servicewrapper.version}}
+
+- name: mirror /opt/elasticsearch-servicewrapper/service to /opt/elasticsearch/bin/
+  action: command /usr/bin/rsync -a /opt/elasticsearch-servicewrapper/service /opt/elasticsearch/bin/ 
+          creates=/opt/elasticsearch/bin/service 
+
+- name: create elasticsearch user
+  action: user name=elasticsearch 
+          comment="elasticsearch user" home=/opt/elasticsearch 
+          system=yes createhome=no state=present
+
+- name: create elasticsearch data directory
+  action: file path=/opt/elasticsearch-{{es_version}}/data state=directory owner=elasticsearch
+
+- name: create /var/log/elasticsearch directory
+  action: file path=/var/log/elasticsearch state=directory owner=elasticsearch
+
+- name: create /var/run/elasticsearch directory
+  action: file path=/var/run/elasticsearch state=directory owner=elasticsearch group=root
+
+- name: deploy elasticsearch config
+  action: copy src=elasticsearch.yml dest=/opt/elasticsearch/config/elasticsearch.yml
+  notify:
+    - restart elasticsearch
+
+- name: deploy elasticsearch servicewrapper config
+  action: copy src=elasticsearch.conf dest=/opt/elasticsearch/bin/service/elasticsearch.conf
+  notify:
+    - restart elasticsearch
+
+- name: deploy es-nofile.conf 
+  action: copy src=es-nofile.conf dest=/etc/security/limits.d/es-nofile.conf
+
+- name: install elasticsearch servicewrapper init file
+  action: command /opt/elasticsearch/bin/service/elasticsearch install creates=/etc/init.d/elasticsearch chdir=/opt/elasticsearch/bin/service
+
+- name: enable and start elasticsearch service
+  action: service name=elasticsearch enabled=yes state=started
