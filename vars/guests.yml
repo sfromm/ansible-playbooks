@@ -1,0 +1,29 @@
+---
+guests:
+    - name: fedora19
+      url: http://fedora.osuosl.org/linux/releases/19/Fedora/x86_64/os/
+      cpu: 1
+      mem: 768
+      virt_type: kvm
+      virt_hypervisor: hvm
+      disk:
+          size: 5
+          path: /var/lib/libvirt/images
+    - name: centos6
+      url: http://centos.osuosl.org/6/os/x86_64/
+      cpu: 1
+      mem: 768
+      virt_type: kvm
+      virt_hypervisor: hvm
+      disk:
+          size: 5
+          path: /var/lib/libvirt/images
+#    - name: debian
+#      url: http://ftp.us.debian.org/debian/dists/stable//main/installer-amd64/
+#      cpu: 1
+#      mem: 768
+#      virt_type: kvm
+#      virt_hypervisor: hvm
+#      disk:
+#          size: 5
+#          path: /var/lib/libvirt/images

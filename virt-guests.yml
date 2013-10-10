@@ -1,0 +1,39 @@
+---
+- name: install vm via virt-install
+  user: root
+  hosts: all
+
+  vars_files:
+      - vars/guests.yml
+
+  tasks:
+      - name: start libvirtd
+        service: name=libvirtd state=started enabled=yes
+
+      - name: get list of vms
+        virt: command=list_vms
+        register: virt_vms
+
+      - name: create vm
+        command: virt-install -n ${item.name} 
+                 -r {{ item.mem }} 
+                 --vcpus {{ item.cpu }} 
+                 -l {{ item.url }} 
+                 --os-type linux 
+                 --network network=default 
+                 --graphics vnc
+                 --{{item.virt_hypervisor}} 
+                 --virt-type {{ item.virt_type }} 
+                 --disk size={{item.disk.size}},path={{item.disk.path}}/{{item.name}}.img 
+                 --noautoconsole
+        when: item.name not in virt_vms.list_vms
+        with_items: guests
+
+      - name: get guest info
+        virt: command=info
+        register: virt_info
+
+      - name: make sure all vms are running
+        virt: name={{item.name}} command=start
+        when: virt_info[item.name]['state'] != 'running'
+        with_items: guests
