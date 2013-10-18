@@ -1,0 +1,21 @@
+---
+- name: install rpmfusion free repo rpm
+  action: command rpm -Uvh http://download1.rpmfusion.org/free/fedora/rpmfusion-free-release-stable.noarch.rpm
+          creates=/etc/yum.repos.d/rpmfusion-free.repo
+  when: ansible_distribution == 'Fedora'
+
+- name: install rpmfusion nonfree repo rpm
+  action: command rpm -Uvh http://download1.rpmfusion.org/nonfree/fedora/rpmfusion-nonfree-release-stable.noarch.rpm
+          creates=/etc/yum.repos.d/rpmfusion-nonfree.repo
+  when: ansible_distribution == 'Fedora'
+
+- name: symlink {{ansible_distribution_version}}-{{ansible_architecture}} rpmfusion-{free,nonfree}-fedora-primary
+  action: file
+          src=/etc/pki/rpm-gpg/{{item}}-{{ansible_distribution_version}}-primary
+          dest=/etc/pki/rpm-gpg/{{item}}-{{ansible_distribution_version}}-{{ansible_architecture}}
+          state=link
+          owner=root group=root
+  when: ansible_distribution == 'Fedora'
+  with_items:
+    - RPM-GPG-KEY-rpmfusion-free-fedora
+    - RPM-GPG-KEY-rpmfusion-nonfree-fedora

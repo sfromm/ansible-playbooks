@@ -1,0 +1,4 @@
+---
+- name: Install EPEL EL6 repository
+  action: command rpm -Uvh  http://{{epel_server}}/6/{{ansible_architecture}}/{{epel_6_release}} creates=/etc/yum.repos.d/epel.repo
+  when: ansible_distribution == 'RedHat' or ansible_distribution == 'CentOS'
