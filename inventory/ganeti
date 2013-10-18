@@ -1,0 +1,166 @@
+#!/usr/bin/python
+
+# Written by Stephen Fromm <stephenf nero net>
+# (C) 2012 University of Oregon
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+# General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
+# 02110-1301, USA.
+
+import os
+import urllib2
+import argparse
+import sys
+import ConfigParser
+
+try:
+    import json
+except:
+    import simplejson as json
+
+GNT_RAPI_HOST = 'localhost'
+GNT_RAPI_PORT = 5080
+HTTP_GET = 'GET'
+HTTP_PUT = 'PUT'
+HTTP_POST = 'POST'
+
+class RequestWithMethod(urllib2.Request):
+    ''' hack to force method in a request - allows PUT or DELETE '''
+
+    def __init__(self, method, *args, **kwargs):
+        self._method = method
+        urllib2.Request.__init__(self, *args, **kwargs)
+
+    def get_method(self):
+        ''' deduce http method to use '''
+        if self._method:
+            return self._method
+        else:
+            return urllib2.Request.get_method(self)
+
+class Ganeti(object):
+
+    def __init__(self, cluster, port):
+        self.cluster = cluster
+        self.rapi_port = port
+        self.uri = 'https://%s:%s' % (self.cluster, self.rapi_port)
+        self.rapi_version = self.cluster_rapi_version()
+        self.cluster = {}
+        self.hostvars = {}
+        cluster_info = self.cluster_info()
+#        print json.dumps(cluster_info, indent=4, sort_keys=True)
+        self.cluster['nodes'] = { 'hosts': [], 'vars': {} }
+        self.cluster['nodes']['vars']['cluster_master'] = cluster_info['master']
+        self.cluster['nodes']['vars']['cluster_name'] = cluster_info['name']
+        self.cluster['nodes']['vars']['config_version'] = cluster_info['config_version']
+        nodes = self.get_nodes()
+        for n in nodes.keys():
+            self.cluster['nodes']['hosts'].append(n)
+            self.hostvars[n] = nodes[n]
+        self.cluster['instances'] = { 'hosts': [], 'vars': {} }
+        guests = self.get_guests()
+        for n in guests.keys():
+            self.cluster['instances']['hosts'].append(n)
+            self.hostvars[n] = guests[n]
+
+    def _rapi_command(self, method, path, body=None):
+        ''' query ganeti rapi service '''
+        uri = '%s/%s' % (self.uri, path)
+        req = RequestWithMethod(method, uri, data=body)
+        f = urllib2.urlopen(req)
+        return json.loads(f.read())
+
+    def cluster_rapi_version(self):
+        ''' return cluster rapi version '''
+        return self._rapi_command(HTTP_GET, 'version')
+
+    def cluster_info(self):
+        ''' return json of cluster info '''
+        return self._rapi_command(HTTP_GET, '%s/info' % self.rapi_version)
+
+    def get_nodes(self):
+        ''' return dict of nodes and node info '''
+        results = {}
+        path = '%s/nodes?bulk=1' % self.rapi_version
+        nodes = self._rapi_command(HTTP_GET, path)
+        for node in nodes:
+            results[node['name']] = node
+        return results
+
+    def get_guests(self):
+        ''' return dict of instances (guests) and guest info '''
+        results = {}
+        path = '%s/instances?bulk=1' % self.rapi_version
+        instances = self._rapi_command(HTTP_GET, path)
+        for inst in instances:
+            results[inst['name']] = inst
+        return results
+
+def read_config():
+    ''' try to read config '''
+    config = ConfigParser.SafeConfigParser()
+    gnt_ini_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'ganeti.ini')
+    if not os.path.exists(gnt_ini_path):
+        return None
+    config.read(gnt_ini_path)
+    return config
+
+def main(args):
+    parser = argparse.ArgumentParser(
+            description='Produce ansible inventory of Ganeti nodes. '
+                        'Requires GNT_RAPI_HOST environment variable.'
+                        )
+    parser.add_argument('--list', action='store_true', default=True,
+                        help='list nodes')
+    parser.add_argument('--host', action='store', 
+                        help='get all variables about a node')
+    args = parser.parse_args()
+
+    # set defaults
+    rapi_host = GNT_RAPI_HOST
+    rapi_port = GNT_RAPI_PORT
+
+    # try to read config for settings
+    config = read_config()
+    if config is not None:
+        if config.has_option('ganeti', 'rapi_host'):
+            rapi_host = config.get('ganeti', 'rapi_host')
+        if config.has_option('ganeti', 'rapi_port'):
+            rapi_port = config.get('ganeti', 'rapi_port')
+
+    # check environment vars; they take precedence
+    if 'GNT_RAPI_HOST' in os.environ:
+        rapi_host = os.environ.get('GNT_RAPI_HOST')
+    if 'GNT_RAPI_PORT' in os.environ:
+        rapi_port = os.environ.get('GNT_RAPI_PORT')
+
+    gnt = Ganeti(rapi_host, rapi_port)
+
+    if args.host:
+        if args.host in gnt.hostvars:
+            data = gnt.hostvars[args.host]
+        else:
+            data = {}
+    elif args.list:
+        data = gnt.cluster
+    print json.dumps(data, indent=2, sort_keys=True)
+    return 0
+
+
+if __name__ == '__main__':
+    try:
+        sys.exit(main(sys.argv[1:]))
+    except KeyboardInterrupt, e:
+        print >> sys.stderr, "Exiting on user request.\n"
+        sys.exit(1)
