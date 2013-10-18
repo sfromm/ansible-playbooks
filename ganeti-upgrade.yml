@@ -1,0 +1,106 @@
+---
+# requires ganeti inventory script
+# This playbook tries to adhere to http://docs.ganeti.org/ganeti/current/html/upgrade.html
+# Example usage:
+#    GNT_RAPI_HOST=gnt.example.net ansible-playbook -i inventory/ganeti \
+#                                  --step playbooks/ganeti-upgrade.yml
+#    GNT_RAPI_HOST=gnt.example.net ansible-playbook -i inventory/ganeti \
+#                                  -e gnt_pkg=ganeti-2.8.1 \
+#                                  --step playbooks/ganeti-upgrade.yml
+- name: upgrade ganeti cluster
+  hosts: nodes
+  user: root
+
+  vars:
+      backup_dir: /var/lib
+      gnt_repo: integ-ganeti
+      gnt_pkg: ganeti
+
+  tasks:
+      # consider a task to disable monitoring  :-)
+
+      - name: pause ganeti watcher on master
+        command: gnt-cluster watcher pause 1h
+        delegate_to: "{{cluster_master}}"
+
+      - name: stop ganeti on all nodes
+        service: name=ganeti state=stopped
+
+      - name: backup configuration on master
+        shell: tar -cpzf {{backup_dir}}/ganeti-$(date +%FT%T).tar.gz 
+               --one-file-system -C /var/lib ganeti
+        delegate_to: "{{cluster_master}}"
+        when: inventory_hostname == cluster_master
+
+      - name: remove ganeti-htools if running 2.6
+        yum: name=ganeti-htools state=absent
+        when: config_version|int == 2060000
+
+      - name: update ganeti on all nodes
+        yum: name={{gnt_pkg}} state=latest enablerepo={{gnt_repo}}
+
+      - name: run cfgupgrade dryrun on master
+        command: /usr/lib64/ganeti/tools/cfgupgrade -f --verbose --dry-run
+        register: gnt_cfgupgrade
+        delegate_to: "{{cluster_master}}"
+        when: inventory_hostname == cluster_master
+
+      - name: cfgupgrade output
+        debug: msg="{{gnt_cfgupgrade.stdout}} {{gnt_cfgupgrade.stderr}}"
+        delegate_to: "{{cluster_master}}"
+        when: inventory_hostname == cluster_master
+
+      - name: review cfgupgrade output
+        pause: prompt="Please review cfgupgrade output (C-c a to abort)"
+
+      - name: run cfgupgrade on master
+        command: /usr/lib64/ganeti/tools/cfgupgrade -f --verbose
+        delegate_to: "{{cluster_master}}"
+        when: inventory_hostname == cluster_master
+
+      - name: get ganeti configuration version on master
+        script: ../scripts/json-qry.py -f /var/lib/ganeti/config.data -k version
+        delegate_to: "{{cluster_master}}"
+        when: inventory_hostname == cluster_master
+        register: gnt_new_version
+
+      - name: upgrade directory permissions on all nodes
+        command: /usr/lib64/ganeti/ensure-dirs --full-run
+        when: hostvars[cluster_master]['gnt_new_version']['stdout']|int >= 2070000
+
+      - name: ganeti user management on all nodes
+        command: /usr/lib64/ganeti/tools/users-setup
+        when: hostvars[cluster_master]['gnt_new_version']['stdout']|int >= 2080000
+
+      - name: restart ganeti on all nodes
+        service: name=ganeti state=restarted
+
+      - name: distribute configuration from master to all nodes
+        command: gnt-cluster redist-conf
+        delegate_to: "{{cluster_master}}"
+        when: inventory_hostname == cluster_master
+
+      - name: distribute file-storage-paths from master to all nodes
+        command: gnt-cluster copyfile /etc/ganeti/file-storage-paths
+        delegate_to: "{{cluster_master}}"
+        when: inventory_hostname == cluster_master and 
+              hostvars[cluster_master]['gnt_new_version']['stdout']|int == 2070000
+
+      - name: restart ganeti on all nodes
+        service: name=ganeti state=restarted
+
+      - name: reenable ganeti watcher on master
+        command: gnt-cluster watcher continue
+        delegate_to: "{{cluster_master}}"
+        when: inventory_hostname == cluster_master
+
+      - name: verify cluster
+        command: gnt-cluster verify
+        delegate_to: "{{cluster_master}}"
+        register: gnt_cluster_verify
+        when: inventory_hostname == cluster_master
+
+      - name: output from verify command
+        debug: msg="{{gnt_cluster_verify.stdout}}"
+
+      # consider a task to re-enable monitoring  :-)
