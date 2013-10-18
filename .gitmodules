@@ -1,3 +1,0 @@
-[submodule "projects/ttrss"]
-	path = projects/ttrss
-	url = git://github.com/skottler/ttrss-ansible.git
