@@ -1,0 +1,8 @@
+---
+- name: install 3rd party yum repositories
+  command: rpm -ivh {{item.rpm}} creates=/etc/yum.repos.d/{{item.filename}}
+  with_items: workstation_repos
+
+- name: install workstation packages
+  yum: name={{item}} state=installed
+  with_items: workstation_packages
