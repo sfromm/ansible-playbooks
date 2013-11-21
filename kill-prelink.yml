@@ -1,0 +1,26 @@
+---
+- hosts: all
+  user: root
+
+  tasks:
+
+    - name: stat prelink
+      stat: path=/usr/sbin/prelink
+      register: st_prelink
+
+    - name: update /etc/sysconfig/prelink to no
+      command: sed -i -e 's/PRELINKING=yes/PRELINKING=no/'
+              /etc/sysconfig/prelink
+      when: st_prelink.stat.exists
+
+    - name: undo prelink actions
+      shell: prelink -uav >> /var/log/prelink/prelink.log 2>&1
+      when: st_prelink.stat.exists
+
+    - name: remove prelink cache
+      file: path=/etc/prelink.cache state=absent
+      when: st_prelink.stat.exists
+
+    - name: remove prelink
+      yum: name=prelink state=absent
+      when: st_prelink.stat.exists
