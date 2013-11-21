@@ -1,5 +1,5 @@
 ---
 - name: install livna repo rpm
-  action: command rpm -Uvh http://rpm.livna.org/livna-release.rpm
-          creates=/etc/yum.repos.d/livna.repo
+  command: rpm -Uvh http://rpm.livna.org/livna-release.rpm
+           creates=/etc/yum.repos.d/livna.repo
   when: ansible_distribution == 'Fedora'
