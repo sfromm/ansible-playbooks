@@ -76,6 +76,7 @@ workstation_packages:
     - subversion
     - terminus-fonts
     - texlive-tex-gyre
+    - texlive-titlesec
     - tcpdump
     - tcptraceroute
     - telnet
