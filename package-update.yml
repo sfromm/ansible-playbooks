@@ -1,0 +1,21 @@
+---
+# requires --extra-vars="hostlist='host1;host2;group'
+- name: apply package updates
+  hosts: $hostlist
+  user: root
+
+  tasks:
+
+    - name: expire yum caches
+      command: yum clean expire-cache
+
+    - name: apply package updates
+      command: yum -y update
+
+    - name: stat of /usr/sbin/aide
+      stat: path=/usr/sbin/aide
+      register: stat_aide
+
+    - name: update aide db
+      command: /etc/cron.daily/z-aide-check.cron
+      when: stat_aide.stat.exists
