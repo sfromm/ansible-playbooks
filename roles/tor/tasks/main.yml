@@ -35,16 +35,18 @@
       - profile.sh
       - profile.csh
 
-- name: set http_proxy in /etc/profile.d/ files
-  lineinfile: dest=/etc/profile.d/{{item}} regexp="^export http_proxy" 
+- name: set http_proxy in /etc/profile.d/profile.sh
+  lineinfile: dest=/etc/profile.d/proxy.sh regexp="^export http_proxy"
               line="export http_proxy=http://localhost:8118"
-  with_items:
-      - profile.sh
-      - profile.csh
+
+- name: set http_proxy in /etc/profile.d/profile.csh files
+  lineinfile: dest=/etc/profile.d/proxy.csh regexp="^setenv http_proxy"
+              line="setenv http_proxy=http://localhost:8118"
 
 - name: set ftp_proxy in /etc/profile.d/{{item}}
-  lineinfile: dest=/etc/profile.d/{{item}} regexp="^export ftp_proxy" 
+  lineinfile: dest=/etc/profile.d/proxy.sh regexp="^export ftp_proxy"
               line="export ftp_proxy=ftp://localhost:9050"
-  with_items:
-      - profile.sh
-      - profile.csh
+
+- name: set ftp_proxy in /etc/profile.d/profile.csh files
+  lineinfile: dest=/etc/profile.d/proxy.csh regexp="^setenv ftp_proxy"
+              line="setenv ftp_proxy=ftp://localhost:9050"
