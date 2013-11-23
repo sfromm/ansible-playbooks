@@ -1,7 +1,14 @@
 ---
-- name: apply workstation roles
+- name: apply workstation role
   user: root
   hosts: workstation
 
   roles:
       - workstation
+
+- name: apply home role
+  user: root
+  hosts: home
+
+  roles:
+      - home

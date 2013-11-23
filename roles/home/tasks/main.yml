@@ -1,0 +1,23 @@
+---
+- name: install packages for home
+  yum: name={{item}} state=installed
+  with_items: home_packages
+
+- name: create groups
+  group: name={{item.name}} gid={{item.gid}}
+  with_items: accounts.groups
+  when: accounts.groups is defined
+  notify: restore secontext
+
+- name: create user accounts
+  user: name={{item.name}} uid={{item.uid}} 
+        group={{item.group}} groups={{item.groups}} 
+        shell={{item.shell}} comment="{{item.comment}}"
+  with_items: accounts.users
+  when: accounts.users is defined
+  notify: restore secontext
+
+- name: set user account passwords
+  user: name={{item.name}} password={{item.password}}
+  when: accounts.users is defined and 'password' in item
+  with_items: accounts.users

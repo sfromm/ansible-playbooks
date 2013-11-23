@@ -1,0 +1,19 @@
+---
+home_packages:
+    - gimp
+    - gramps
+    - gnucash
+    - hplip-gui
+    - libmatroska
+    - stella
+    - fakenes
+    - snes9x
+    - libdvdcss
+    - mplayer
+    - mkvtoolnix
+# stuff for games
+    - glibc.i686
+    - fontconfig.i686
+    - mesa-dri-drivers.i686
+    - mesa-libGL.i686
+    - mesa-libGLU.i686
