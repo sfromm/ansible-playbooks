@@ -1,0 +1,52 @@
+---
+- name: install tor repo
+  copy: src=torproject.repo dest=/etc/yum.repos.d/torproject.repo
+        owner=root group=root mode=0644
+
+- name: import tor project gpg key
+  command: rpm --import http://deb.torproject.org/torproject.org/rpm/RPM-GPG-KEY-torproject.org.asc
+           creates=/etc/pki/rpm-gpg/RPM-GPG-KEY-torproject.org.asc
+
+- name: install tor and dependencies
+  yum: name={{item}} state=installed
+  with_items:
+      - tor
+      - privoxy
+
+- name: forward privoxy to tor
+  lineinfile: dest=/etc/privoxy/config regexp="^listen-address" insertafter=^listen-address 
+              line="forward-socks5 / 127.0.0.1:9050 ."
+
+- name: enable and start tor
+  service: name=tor state=started enabled=yes
+
+- name: enable and start privoxy
+  service: name=privoxy state=started enabled=yes pattern=privoxy
+
+- name: create /etc/profile.d/ files 
+  command: touch /etc/profile.d/{{item}} creates=/etc/profile.d/{{item}}
+  with_items:
+      - profile.sh
+      - profile.csh
+
+- name: fix perms 
+  file: path=/etc/profile.d/{{item}} owner=root group=root mode=0644
+  with_items:
+      - profile.sh
+      - profile.csh
+
+- name: set http_proxy in /etc/profile.d/profile.sh
+  lineinfile: dest=/etc/profile.d/proxy.sh regexp="^export http_proxy"
+              line="export http_proxy=http://localhost:8118"
+
+- name: set http_proxy in /etc/profile.d/profile.csh files
+  lineinfile: dest=/etc/profile.d/proxy.csh regexp="^setenv http_proxy"
+              line="setenv http_proxy=http://localhost:8118"
+
+- name: set ftp_proxy in /etc/profile.d/{{item}}
+  lineinfile: dest=/etc/profile.d/proxy.sh regexp="^export ftp_proxy"
+              line="export ftp_proxy=ftp://localhost:9050"
+
+- name: set ftp_proxy in /etc/profile.d/profile.csh files
+  lineinfile: dest=/etc/profile.d/proxy.csh regexp="^setenv ftp_proxy"
+              line="setenv ftp_proxy=ftp://localhost:9050"

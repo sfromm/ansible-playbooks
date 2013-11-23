@@ -1,4 +1,4 @@
 ---
 - name: Install elrepo.org EL6 repository
-  action: command rpm -Uvh  http://{{elrepo_server}}/{{elrepo_6_release}} creates=/etc/yum.repos.d/elrepo.repo
+  command: rpm -Uvh  http://{{elrepo_server}}/{{elrepo_6_release}} creates=/etc/yum.repos.d/elrepo.repo
   when: ansible_distribution == 'RedHat' or ansible_distribution == 'CentOS'

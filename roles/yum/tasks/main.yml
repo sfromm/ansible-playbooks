@@ -1,30 +1,26 @@
 ---
-- name: install base yum packages
-  action: yum name={{item}} state=installed
+- name: install yum plugins and helpers
+  yum: name={{item}} state=installed
+  when: ansible_distribution_release != 'Tikanga'
   with_items:
-    - yum
     - yum-utils
-
-- name: install yum plugins
-  action: yum name={{item}} state=installed
-  with_items:
     - yum-plugin-changelog
     - yum-plugin-downloadonly
     - yum-plugin-security
     - yum-plugin-versionlock
-  when: ansible_distribution_release != 'Tikanga'
 
-- name: install el5 yum plugins
-  action: yum name={{item}} state=installed
+- name: install el5 yum plugins and helpers
+  yum: name={{item}} state=installed
+  when: ansible_distribution_release == 'Tikanga'
   with_items:
+    - yum-utils
     - yum-downloadonly
     - yum-security
     - yum-versionlock
-  when: ansible_distribution_release == 'Tikanga'
 
 - name: Copy over versionlock.list
-  action: copy src={{item}} dest=/etc/yum/pluginconf.d/versionlock.list
-          owner=root group=root mode=0644
+  copy: src={{item}} dest=/etc/yum/pluginconf.d/versionlock.list
+        owner=root group=root mode=0644
   first_available_file:
       - versionlock.list.{{ansible_hostname}}
       - versionlock.list.{{ansible_distribution}}

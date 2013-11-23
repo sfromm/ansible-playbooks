@@ -1,5 +1,5 @@
 ---
-- name: install vm via virt-install
+- name: install libvirt guests via virt-install
   user: root
   hosts: all
 
@@ -15,7 +15,7 @@
         register: virt_vms
 
       - name: create vm
-        command: virt-install -n ${item.name} 
+        command: virt-install -n {{item.name}}
                  -r {{ item.mem }} 
                  --vcpus {{ item.cpu }} 
                  -l {{ item.url }} 
