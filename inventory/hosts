@@ -1,2 +1,5 @@
 [workstation]
 tiger ansible_ssh_host=192.168.1.10
+
+[home]
+tiger
