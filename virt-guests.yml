@@ -10,6 +10,9 @@
       - name: start libvirtd
         service: name=libvirtd state=started enabled=yes
 
+      - name: wait for libvirtd to get up
+        pause: seconds=30
+
       - name: get list of vms
         virt: command=list_vms
         register: virt_vms
