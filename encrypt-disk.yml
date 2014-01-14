@@ -1,0 +1,42 @@
+---
+- name: encrypt disk volume
+  user: root
+  hosts: localhost
+  connection: local
+
+  vars:
+      mkfs: mkfs.ext4
+
+  vars_prompt:
+      - name: dev
+        prompt: "Device? "
+        private: no
+      - name: name
+        prompt: "Name? "
+        private: no
+      - name: pass
+        prompt: "Passphrase? "
+        private: yes
+
+  tasks:
+      - name: create temp file
+        command: mktemp /tmp/encdisk.XXXXXXX
+        register: tmp
+
+      - name: write password to temp file
+        template: src=templates/encrypt-pass.j2 dest={{tmp.stdout}}
+
+      - name: encrypt disk
+        shell: cat {{tmp.stdout}} | 
+               cryptsetup --verbose --batch-mode luksFormat {{dev}}
+
+      - name: open encrypted disk
+        shell: cat {{tmp.stdout}} | cryptsetup luksOpen {{dev}} {{name}}
+
+      - name: mkfs on {{dev}}
+        command: '{{mkfs}} -L {{name}} /dev/mapper/{{name}}'
+
+      - name: purge temp file
+        file: path={{tmp.stdout}} state=absent
+
+      
