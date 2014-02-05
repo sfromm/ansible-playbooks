@@ -5,6 +5,7 @@
 
   roles:
       - workstation
+      - java
 
 - name: apply home role
   user: root
