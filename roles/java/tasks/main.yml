@@ -1,0 +1,65 @@
+---
+- name: install upstream java packages
+  yum: name=java state=installed
+
+- name: check for oracle jre
+  stat: path={{oracle_jre.path}}/bin/java
+  register: stat_oracle_jre_path
+
+- name: Define Oracle alternative
+  when: stat_oracle_jre_path.stat.exists
+  register: java_alternative
+  command: alternatives --install 
+           /usr/bin/java java {{oracle_jre.path}}/bin/java {{oracle_jre.priority}}
+           --slave /usr/lib/jvm/jre jre {{oracle_jre.path}}/lib
+           --slave /usr/lib/jvm/jre-1.7.0 jre-1.7.0 {{oracle_jre.path}}/lib
+           --slave /usr/lib/jvm-exports/jre jre-exports {{oracle_jre.path}}/jre/lib
+           --slave /usr/bin/keytool keytool {{oracle_jre.path}}/bin/keytool 
+           --slave /usr/bin/orbd orbd {{oracle_jre.path}}/bin/orbd 
+           --slave /usr/bin/pack200 pack200 {{oracle_jre.path}}/bin/pack200 
+           --slave /usr/bin/rmid rmid {{oracle_jre.path}}/bin/rmid 
+           --slave /usr/bin/rmiregistry rmiregistry {{oracle_jre.path}}/bin/rmiregistry 
+           --slave /usr/bin/servertool servertool {{oracle_jre.path}}/bin/servertool 
+           --slave /usr/bin/tnameserv tnameserv {{oracle_jre.path}}/bin/tnameserv 
+           --slave /usr/bin/unpack200 unpack200 {{oracle_jre.path}}/bin/unpack200 
+           --slave /usr/share/man/man1/java.1 java.1 {{oracle_jre.path}}/man/man1/java.1
+           --slave /usr/share/man/man1/keytool.1 keytool.1 {{oracle_jre.path}}/man/man1/keytool.1
+           --slave /usr/share/man/man1/orbd.1 orbd.1 {{oracle_jre.path}}/man/man1/orbd.1
+           --slave /usr/share/man/man1/pack200.1 pack200.1 {{oracle_jre.path}}/man/man1/pack200.1
+           --slave /usr/share/man/man1/rmid.1 rmid.1 {{oracle_jre.path}}/man/man1/rmid.1
+           --slave /usr/share/man/man1/rmiregistry.1 rmiregistry.1 {{oracle_jre.path}}/man/man1/rmiregistry.1
+           --slave /usr/share/man/man1/servertool.1 servertool.1 {{oracle_jre.path}}/man/man1/servertool.1
+           --slave /usr/share/man/man1/tnameserv.1 tnameserv.1 {{oracle_jre.path}}/man/man1/tnameserv.1
+           --slave /usr/share/man/man1/unpack200.1 unpack200.1 {{oracle_jre.path}}/man/man1/unpack200.1
+ 
+- name: stat /etc/alternatives/java
+  stat: path=/etc/alternatives/java
+  register: java_stat
+
+- name: Reselect java alternative
+  when: java_stat.stat.lnk_source != role_preferred_java
+  command: alternatives --set java {{ role_preferred_java }}
+
+#
+# Now, deal with java plugin for browsers
+#
+
+- name: install icedtea-web package
+  yum: name=icedtea-web state=installed
+  when: role_java_plugin
+
+- name: stat /etc/alternatives/libjavaplugin.so.x86_64
+  stat: path=/etc/alternatives/libjavaplugin.so.x86_64
+  register: javaplugin_stat
+
+- name: Define Oracle java plugin alternative
+  when: java_alternative.changed and role_java_plugin
+  command: alternatives --install
+           {{mozilla_plugin_dir}}/libjavaplugin.so libjavaplugin.so.x86_64
+           {{oracle_jre.path}}/{{oracle_jre.plugin}} {{oracle_jre.priority}}
+           --slave /usr/bin/javaws javaws {{oracle_jre.path}}/bin/javaws
+           --slave /usr/share/man/man1/javaws.1.gz javaws.1.gz {{oracle_jre.path}}/man/man1/javaws.1.gz
+
+- name: Reselect java plugin alternative
+  when: role_java_plugin and javaplugin_stat.stat.lnk_source != role_preferred_java_plugin
+  command: alternatives --set libjavaplugin.so.x86_64 {{role_preferred_java_plugin}}

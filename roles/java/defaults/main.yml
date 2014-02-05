@@ -1,0 +1,9 @@
+---
+mozilla_plugin_dir: /usr/lib64/mozilla/plugins
+oracle_jre:
+    path: /usr/java/latest
+    priority: 17051
+    plugin: lib/amd64/libnpjp2.so
+role_java_plugin: yes
+role_preferred_java: "{{oracle_jre.path}}/bin/java"
+role_preferred_java_plugin: /usr/lib64/IcedTeaPlugin.so
