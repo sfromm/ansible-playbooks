@@ -1,0 +1,25 @@
+---
+vim_pathogen:
+    url: https://raw.github.com/tpope/vim-pathogen/master/autoload/pathogen.vim
+    path: .vim/autoload/pathogen.vim
+vim_paths:
+    - .vim
+    - .vim/autoload
+    - .vim/bundle
+vim_plugin_git:
+    - name: vim-markdown
+      url: git://github.com/tpope/vim-markdown.git
+    - name: vim-commentary
+      url: git://github.com/tpope/vim-commentary.git
+    - name: vim-colors-solarized
+      url: git://github.com/altercation/vim-colors-solarized.git
+    - name: base16-vim
+      url: git://github.com/chriskempson/base16-vim.git
+    - name: ctrlp.vim
+      url: git://github.com/kien/ctrlp.vim.git
+    - name: vim-scratch
+      url: git://github.com/kana/vim-scratch
+    - name: snipmate
+      url: git://github.com/msanders/snipmate.vim.git
+    - name: ansible_snippet_generator
+      url: git://github.com/bleader/ansible_snippet_generator.git

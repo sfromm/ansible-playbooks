@@ -1,0 +1,4 @@
+---
+- name: clone emacs addons
+  git: repo={{item.url}} dest={{user_home}}/{{emacs_cust_dir}}/{{item.name}}
+  with_items: emacs_addon_git

@@ -1,0 +1,11 @@
+---
+emacs_cust_dir: .emacs.d
+emacs_addon_git:
+    - name: use-package
+      url: https://github.com/jwiegley/use-package.git
+    - name: org-mode
+      url: git://orgmode.org/org-mode.git
+    - name: yaml-mode
+      url: https://github.com/yoshiki/yaml-mode.git
+    - name: twittering-mode
+      url: https://github.com/hayamiz/twittering-mode.git

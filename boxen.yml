@@ -1,0 +1,10 @@
+---
+- name: boxen with ansbile - tailor home environment
+  hosts: all
+
+  vars:
+      user_home: "{{ lookup('env', 'HOME') }}"
+
+  roles:
+      - boxen/emacs
+      - boxen/vim

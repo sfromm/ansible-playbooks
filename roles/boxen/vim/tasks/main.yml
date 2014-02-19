@@ -1,0 +1,11 @@
+---
+- name: make sure {{user_home}}/ vim paths exist
+  file: path={{user_home}}/{{item}} state=directory
+  with_items: vim_paths
+
+- name: install pathogen
+  get_url: url={{vim_pathogen.url}} dest={{user_home}}/{{vim_pathogen.path}}
+
+- name: clone vim plugins
+  git: repo={{item.url}} dest={{user_home}}/.vim/bundle/{{item.name}}
+  with_items: vim_plugin_git
