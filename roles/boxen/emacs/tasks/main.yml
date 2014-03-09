@@ -2,3 +2,13 @@
 - name: clone emacs addons
   git: repo={{item.url}} dest={{user_home}}/{{emacs_cust_dir}}/{{item.name}}
   with_items: emacs_addon_git
+  register: boxen_emacs_git
+
+- name: check org-mode is present
+  stat: path={{user_home}}/{{emacs_cust_dir}}/org-mode
+  register: boxen_emacs_stat
+
+- name: compile org-mode lisp if necessary
+  command: chdir={{user_home}}/{{emacs_cust_dir}}/org-mode
+           make autoloads
+  when: boxen_emacs_git.changed and boxen_emacs_stat.stat.exists
