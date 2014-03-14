@@ -12,3 +12,7 @@
   command: chdir={{user_home}}/{{emacs_cust_dir}}/org-mode
            make autoloads
   when: boxen_emacs_git.changed and boxen_emacs_stat.stat.exists
+
+- name: deploy .el files from internets
+  get_url: url={{item.url}} dest={{user_home}}/{{emacs_cust_dir}}/{{item.name}}
+  with_items: emacs_addon_files

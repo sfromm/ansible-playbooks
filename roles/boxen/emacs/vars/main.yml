@@ -1,5 +1,8 @@
 ---
 emacs_cust_dir: .emacs.d
+emacs_addon_files:
+    - name: gnus-alias.el
+      url: http://www.emacswiki.org/emacs/download/gnus-alias.el
 emacs_addon_git:
     - name: use-package
       url: https://github.com/jwiegley/use-package.git
