@@ -1,18 +1,22 @@
 ---
+- name: make relevant directories
+  file: path={{user_home}}/{{item}} state=directory mode=0700
+  with_items: emacs_d_dirs
+
 - name: clone emacs addons
-  git: repo={{item.url}} dest={{user_home}}/{{emacs_cust_dir}}/{{item.name}}
+  git: repo={{item.url}} dest={{user_home}}/{{emacs_pkg_dir}}/{{item.name}}
   with_items: emacs_addon_git
   register: boxen_emacs_git
 
 - name: check org-mode is present
-  stat: path={{user_home}}/{{emacs_cust_dir}}/org-mode
+  stat: path={{user_home}}/{{emacs_pkg_dir}}/org-mode
   register: boxen_emacs_stat
 
 - name: compile org-mode lisp if necessary
-  command: chdir={{user_home}}/{{emacs_cust_dir}}/org-mode
+  command: chdir={{user_home}}/{{emacs_pkg_dir}}/org-mode
            make autoloads
   when: boxen_emacs_git.changed and boxen_emacs_stat.stat.exists
 
 - name: deploy .el files from internets
-  get_url: url={{item.url}} dest={{user_home}}/{{emacs_cust_dir}}/{{item.name}}
+  get_url: url={{item.url}} dest={{user_home}}/{{emacs_lisp_dir}}/{{item.name}}
   with_items: emacs_addon_files

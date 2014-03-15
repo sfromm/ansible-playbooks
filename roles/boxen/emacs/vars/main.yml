@@ -1,5 +1,10 @@
 ---
-emacs_cust_dir: .emacs.d
+emacs_lisp_dir: .emacs.d/lisp
+emacs_pkg_dir: .emacs.d/package
+emacs_d_dirs:
+    - .emacs.d
+    - "{{emacs_lisp_dir}}"
+    - "{{emacs_pkg_dir}}"
 emacs_addon_files:
     - name: gnus-alias.el
       url: http://www.emacswiki.org/emacs/download/gnus-alias.el
