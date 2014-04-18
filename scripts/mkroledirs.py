@@ -4,7 +4,8 @@ import os
 import sys
 from optparse import OptionParser
 
-role_dirs = ['files', 'handlers', 'meta', 'tasks', 'templates', 'vars']
+role_dirs = ['defaults', 'files', 'handlers', 'meta',
+             'tasks', 'templates', 'vars']
 base_dir = os.path.abspath(
         os.path.join(os.path.dirname(__file__), '..', 'roles')
         )
