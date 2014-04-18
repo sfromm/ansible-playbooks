@@ -1,4 +1,5 @@
 ---
+mqtt_apt_url: http://repo.mosquitto.org/debian
 mqtt_conf:
   allow_anonymous: 'true'
   log_dest: 
