@@ -1,12 +1,12 @@
 ---
-- name: install selinux python module
-  yum: name=libselinux-python state=present
-  when: ansible_os_family == 'RedHat'
-
 - name: install mosquitto
   yum: name={{item}} state=present
   with_items: redhat_pkgs
   when: ansible_os_family == 'RedHat'
+
+- name: add mosquitto.org apt repo
+  apt_repository: repo="deb {{mqtt_apr_url}} stable main" state=present
+  when: ansible_os_family == 'Debian'
 
 - name: install mosquitto
   apt: name={{item}} state=present update_cache=yes
