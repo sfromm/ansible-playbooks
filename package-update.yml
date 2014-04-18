@@ -1,21 +1,43 @@
 ---
 # requires --extra-vars="hostlist='host1;host2;group'
-- name: apply package updates
-  hosts: $hostlist
+- name: group hosts based on os family
+  hosts: "{{hostlist}}"
   user: root
 
   tasks:
+    - group_by: key="{{ansible_os_family}}"
 
+- name: update debian based hosts
+  hosts: Debian
+  user: root
+  gather_facts: no
+
+  tasks:
+    - name: do apt update and upgrade
+      apt: update_cache=yes upgrade=dist
+
+- name: update redhat based hosts
+  hosts: RedHat
+  user: root
+  gather_facts: no
+
+  tasks:
     - name: expire yum caches
       command: yum clean expire-cache
 
     - name: apply package updates
       command: yum -y update
 
-    - name: stat of /usr/sbin/aide
-      stat: path=/usr/sbin/aide
-      register: stat_aide
+- name: update rkhunter if installed
+  hosts: "{{hostlist}}"
+  user: root
+  gather_facts: no
 
-    - name: update aide db
-      command: /etc/cron.daily/z-aide-check.cron
-      when: stat_aide.stat.exists
+  tasks:
+    - name: check for rkhunter
+      stat: path=/usr/bin/rkhunter
+      register: rkhunter
+
+    - name: update rkhunter prop
+      command: /usr/bin/rkhunter --propupd
+      when: rkhunter.stat.exists
