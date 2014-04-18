@@ -1,0 +1,22 @@
+---
+- name: install selinux python module
+  yum: name=libselinux-python state=present
+  when: ansible_os_family == 'RedHat'
+
+- name: install mosquitto
+  yum: name={{item}} state=present
+  with_items: redhat_pkgs
+  when: ansible_os_family == 'RedHat'
+
+- name: install mosquitto
+  apt: name={{item}} state=present update_cache=yes
+  with_items: debian_pkgs
+  when: ansible_os_family == 'Debian'
+
+- name: deploy mosquitto.conf
+  template: src=mosquitto.conf.j2 dest=/etc/mosquitto/mosquitto.conf
+            owner=root group=root mode=0644 backup=yes
+  notify: restart mosquitto
+
+- name: enable and start mosquitto service
+  service: name=mosquitto state=started enabled=yes

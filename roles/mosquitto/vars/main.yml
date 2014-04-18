@@ -1,0 +1,8 @@
+---
+redhat_pkgs:
+  - mosquitto
+  - mosquitto-python
+debian_pkgs:
+  - mosquitto
+  - mosquitto-clients
+  - mosquitto-python

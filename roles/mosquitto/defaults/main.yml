@@ -1,0 +1,15 @@
+---
+mqtt_conf:
+  allow_anonymous: 'true'
+  log_dest: 
+    - syslog
+    - topic
+  log_type:
+    - error
+    - warning
+    - notice
+    - information
+    - all
+    - debug
+  persistence_file: mosquitto.db
+  persistence_location: /var/lib/mosquitto
