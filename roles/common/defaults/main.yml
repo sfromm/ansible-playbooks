@@ -1,0 +1,9 @@
+---
+debian:
+  prereq_pkgs: 
+    - python-apt 
+    - python-pycurl
+  signing_key: https://ftp-master.debian.org/keys/archive-key-7.0.asc
+  backport:
+    url: http://http.us.debian.org/debian
+    components: "{{ansible_distribution_release}}-backports main contrib"

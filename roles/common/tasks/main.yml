@@ -1,0 +1,13 @@
+---
+- name: install ansible prerequisites for debian
+  script: install-missing-deb.sh {{item}}
+  when: ansible_os_family == 'Debian'
+  with_items: debian.prereq_pkgs
+
+- name: ensure have apt signing keys
+  apt_key: url={{debian.signing_key}} state=present
+  when: ansible_os_family == 'Debian'
+
+- name: enable backports for a more current package set on stable
+  apt_repository: repo="deb {{debian.backport.url}} {{debian.backport.components}}" state=present
+  when: ansible_os_family == 'Debian'
