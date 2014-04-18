@@ -1,0 +1,13 @@
+---
+- name: deploy ssh authorized_key(s) to remote
+  hosts: all
+
+  vars:
+      my_home: "{{ lookup('env', 'HOME') }}"
+
+  tasks:
+      - yum: name=libselinux-python state=installed
+        when: ansible_os_family == 'RedHat'
+
+      - name: deploy ssh key to account
+        authorized_key: user={{ansible_user_id}} key="{{lookup('file', my_home + '/.ssh/authorized_keys')}}"
