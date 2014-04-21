@@ -8,6 +8,7 @@
   apt_key: url={{debian.signing_key}} state=present
   when: ansible_os_family == 'Debian'
 
-- name: enable backports for a more current package set on stable
-  apt_repository: repo="deb {{debian.backport.url}} {{debian.backport.components}}" state=present
+- name: enable additional apt sources
+  apt_repository: repo="deb {{item.url}} {{item.components}}" state=present
+  with_items: debian.apt.sources
   when: ansible_os_family == 'Debian'

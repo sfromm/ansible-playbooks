@@ -4,6 +4,9 @@ debian:
     - python-apt 
     - python-pycurl
   signing_key: https://ftp-master.debian.org/keys/archive-key-7.0.asc
-  backport:
-    url: http://http.us.debian.org/debian
-    components: "{{ansible_distribution_release}}-backports main contrib"
+  apt:
+    sources:
+        - url: http://http.us.debian.org/debian
+          components: "{{ansible_distribution_release}}-backports main contrib"
+        - url: http://security.debian.org/
+          components: "{{ansible_distribution_release}}/updates main contrib"
