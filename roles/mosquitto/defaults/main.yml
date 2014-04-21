@@ -1,7 +1,11 @@
 ---
 mqtt_apt_url: http://repo.mosquitto.org/debian
+mqtt_apt_key: http://repo.mosquitto.org/debian/mosquitto-repo.gpg.key
 mqtt_conf:
   allow_anonymous: 'true'
+  listener:
+    - 1883 127.0.0.1
+    - 8883
   log_dest: 
     - syslog
     - topic
@@ -12,5 +16,6 @@ mqtt_conf:
     - information
     - all
     - debug
+  password_file: /etc/mqttpasswd
   persistence_file: mosquitto.db
   persistence_location: /var/lib/mosquitto

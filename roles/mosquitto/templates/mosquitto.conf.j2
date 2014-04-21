@@ -38,22 +38,19 @@
 # Default listener
 # =================================================================
 
-# IP address/hostname to bind the default listener to. If not
-# given, the default listener will not be bound to a specific 
-# address and so will be accessible to all network interfaces.
-# bind_address ip-address/host name
-#bind_address
-
-# Port to use for the default listener.
-#port 1883
-
-# The maximum number of client connections to allow. This is 
-# a per listener setting.
-# Default is -1, which means unlimited connections.
-# Note that other process limits mean that unlimited connections 
-# are not really possible. Typically the default maximum number of 
-# connections possible is around 1024.
-#max_connections -1
+# Listen on a port/ip address combination. By using this variable 
+# multiple times, mosquitto can listen on more than one port. If 
+# this variable is used and neither bind_address nor port given, 
+# then the default listener will not be started.
+# The port number to listen on must be given. Optionally, an ip 
+# address or host name may be supplied as a second argument. In 
+# this case, mosquitto will attempt to bind the listener to that 
+# address and so restrict access to the associated network and 
+# interface. By default, mosquitto will listen on all interfaces.
+# listener port-number [ip address/host name]
+{% for listener in mqtt_conf.listener %}
+listener {{listener}}
+{% endfor %}
 
 # =================================================================
 # Persistence
@@ -129,4 +126,15 @@ log_type {{type}}
 # Defaults to true.
 allow_anonymous {{mqtt_conf.allow_anonymous}}
 
-
+# Control access to the broker using a password file. This file can be
+# generated using the mosquitto_passwd utility. If TLS support is not compiled
+# into mosquitto (it is recommended that TLS support should be included) then
+# plain text passwords are used, in which case the file should be a text file
+# with lines in the format:
+# username:password
+# The password (and colon) may be omitted if desired, although this 
+# offers very little in the way of security.
+# 
+# See the TLS client require_certificate and use_identity_as_username options
+# for alternative authentication options.
+password_file {{mqtt_conf.password_file}}

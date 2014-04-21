@@ -5,4 +5,4 @@ redhat_pkgs:
 debian_pkgs:
   - mosquitto
   - mosquitto-clients
-  - mosquitto-python
+  - python-mosquitto

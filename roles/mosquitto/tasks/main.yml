@@ -4,8 +4,12 @@
   with_items: redhat_pkgs
   when: ansible_os_family == 'RedHat'
 
+- name: add mosquitto.org apt key
+  apt_key: url={{mqtt_apt_key}} state=present
+  when: ansible_os_family == 'Debian'
+
 - name: add mosquitto.org apt repo
-  apt_repository: repo="deb {{mqtt_apr_url}} stable main" state=present
+  apt_repository: repo="deb {{mqtt_apt_url}} stable main" state=present
   when: ansible_os_family == 'Debian'
 
 - name: install mosquitto
