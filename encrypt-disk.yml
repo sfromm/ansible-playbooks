@@ -37,6 +37,6 @@
         command: '{{mkfs}} -L {{name}} /dev/mapper/{{name}}'
 
       - name: purge temp file
-        file: path={{tmp.stdout}} state=absent
+        command: shred -z -u {{tmp.stdout}}
 
       
