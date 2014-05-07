@@ -1,0 +1,46 @@
+#+TITLE: Audit Modules
+#+OPTIONS: toc:4 h:4
+
+* Audit Modules
+** About these modules
+
+The following modules are an experiment to investigate using [[http://www.ansible.com/][Ansible]]'s
+orchestration abilities to audit one's entire infrastructure from a
+central point.   Some of this inspired from lessons learned in the
+course of other compromises (for example, see [[http://article.gmane.org/gmane.linux.kernel/1197924][here]]).
+
+These modules are *not* intended to remediate or take any corrective
+action.  They are only meant to investigate and report back the
+findings.  You will want to take advantage of Ansible's [[http://docs.ansible.com/intro_configuration.html#log-path][logging]] or use
+[[http://docs.ansible.com/developing_plugins.html#callbacks][callbacks]] to capture the information.
+
+** Modules
+
+The modules should be self-documenting.  If you invoke =ansible-doc -l -M
+library/=, you should see these modules in the list.
+
+*** auditd
+
+Verify auditd is running and that it has rules loaded.
+
+*** filesystem
+
+Check filesystem for various quirks and leverages the host's package
+manager (presently, only /Yum/) to verify checksums.
+
+*** iptables
+
+Check /iptables/ chains.  This will warn if the chain has no rules and a
+policy of either /DROP/ or /ACCEPT/.
+
+*** net_service
+
+Check executables that are listening for connections on a TCP port.
+
+*** selinux_status
+
+Verify that SELinux is enabled and enforcing.
+
+*** signed_pkgs
+
+Verify that all installed packages are signed.
