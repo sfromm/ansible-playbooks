@@ -1,5 +1,6 @@
 ---
-- hosts: all
+- name: disable and remove prelink
+  hosts: all
   user: root
 
   tasks:
