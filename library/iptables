@@ -1,0 +1,86 @@
+#!/usr/bin/python
+
+# Written by Stephen Fromm <sfromm@gmail.com>
+# (C) 2013 University of Oregon
+#
+# This file is part of Ansible
+#
+# Ansible is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# Ansible is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with Ansible.  If not, see <http://www.gnu.org/licenses/>.
+
+DOCUMENTATION = '''
+---
+module: iptables
+short_description: check iptables rules
+description:
+     - Check iptables rules
+version_added: "NA"
+options:
+  chain:
+    description:
+      - A list of iptables chains to inspect
+    required: false
+    default: none
+author: Stephen Fromm
+'''
+
+EXAMPLES = '''
+# Inspect INPUT iptables chain
+- firewall: chain=INPUT
+'''
+
+import socket
+
+def check_chain(ip, chain, out):
+    warn = []
+    rules = []
+    lines = out.splitlines()
+    if len(lines) > 2:
+        for line in lines[2:]:
+            rules.append(line)
+    if 'policy ACCEPT' in lines[0]:
+        if len(rules) == 0:
+            warn.append('%s chain %s has no firewall rules and policy is ACCEPT' % (ip, chain))
+        else:
+            pass
+    else:
+        policy = lines[0].split()[-1].rstrip(')')
+        if len(rules) == 0:
+            warn.append('%s chain %s (policy %s) is set to drop without any rules' % (ip, chain, policy))
+    return warn
+
+
+def main():
+    IP = { 'ipv4': 'iptables', 'ipv6': 'ip6tables' }
+    warn = []
+    module = AnsibleModule(
+        argument_spec = dict(
+            chain=dict(required=False, default='INPUT')
+        )
+    )
+    chains = module.params['chain']
+    for chain in chains.split(','):
+        for ip, cmd in IP.iteritems():
+            args = [cmd, '-L', chain, '-n']
+            if ip == 'ipv6' and socket.has_ipv6:
+                rc, out, err = module.run_command(args, check_rc=True)
+                warn.extend(check_chain(ip, chain, out))
+    module.exit_json(
+            msg = '\n'.join(warn),
+            descr = 'check firewall chains',
+            changed = False
+            )
+
+# import module snippets
+from ansible.module_utils.basic import *
+main()

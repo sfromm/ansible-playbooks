@@ -1,0 +1,236 @@
+#!/usr/bin/python
+
+# Written by Stephen Fromm <sfromm@gmail.com>
+# (C) 2013-2014 University of Oregon
+#
+# This file is part of Ansible
+#
+# Ansible is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# Ansible is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with Ansible.  If not, see <http://www.gnu.org/licenses/>.
+
+DOCUMENTATION = '''
+---
+module: net_service
+short_description: check network services
+description:
+     - Check network services.  This will examine what is listening 
+       for an incoming TCP connection.  Presently warns if executable is 
+       not owned by a package.
+version_added: "NA"
+options:
+  exclude:
+    description:
+      - A list of file paths to not examine
+    required: false
+    default: none
+  include:
+    description:
+      - A list of file paths to include in file system checks
+    required: false
+    default: none
+author: Stephen Fromm
+'''
+
+EXAMPLES = '''
+# Check 
+- action: net_service
+'''
+
+import base64
+import glob
+import socket
+import struct
+import sys
+try:
+    import yum
+    HAVE_YUM = True
+except ImportError:
+    HAVE_YUM = False
+
+PROC_TCP = ['/proc/net/tcp', '/proc/net/tcp6']
+STATE = {
+    '01':'ESTABLISHED',
+    '02':'SYN_SENT',
+    '03':'SYN_RECV',
+    '04':'FIN_WAIT1',
+    '05':'FIN_WAIT2',
+    '06':'TIME_WAIT',
+    '07':'CLOSE',
+    '08':'CLOSE_WAIT',
+    '09':'LASK_ACK',
+    '0A':'LISTEN',
+    '0B':'CLOSING'
+    }
+
+class PackageManager(object):
+    ''' generic class for a generic package manager '''
+    pkgmgr = 'generic'
+
+    def __new__(cls, *arguments, **keyword):
+        sublcass = cls
+        for sc in PackageManager.__subclasses__():
+            if os.path.exists(os.path.join('/usr/bin', sc.pkgmgr)):
+                subclass = sc
+        return super(cls, subclass).__new__(subclass, *arguments, **keyword)
+    def __init__(self):
+        pass
+
+    def get_package_owner(self, path):
+        pass
+
+    def verify_package(self, pkg, path):
+        pass
+
+class YumManager(PackageManager):
+    ''' implementation of generic PackageManager '''
+    pkgmgr = 'yum'
+
+    def __init__(self):
+        self.yb = yum.YumBase()
+
+    def get_package_owner(self, path):
+        pkgs = self.yb.rpmdb.getProvides(path)
+        if not pkgs:
+            return None
+        else:
+            return (pkgs.keys())[0].name
+
+    def get_package_info(self, pkg):
+        return self.yb.rpmdb.searchNevra(name='%s' % (pkg))
+
+    def get_package_tuple(self, pkg):
+        p = self.get_package_info(pkg)
+        if len(p) > 0:
+            return p[0].pkgtup
+        else:
+            return None
+
+    def verify_package(self, pkg):
+        warn = {}
+        pkgtup = self.get_package_tuple(pkg)
+        yip = self.yb.getInstalledPackageObject(pkgtup)
+        results = yip.verify()
+        for pkg_file in results.keys():
+            for n in results[pkg_file]:
+                if n.message != 'missing but ok':
+                    if pkg_file not in warn:
+                        warn[pkg_file] = []
+                    warn[pkg_file].append(n.message)
+        return warn
+
+def convert_ip_port(array):
+    ''' convert the hex encoded string as found in /proc/net/tcp* '''
+    ip, port = array.split(':')
+    port = int(port, 16)
+    if len(ip) <= 8:
+        if sys.byteorder == 'little':
+            ip = base64.b16decode(ip)[::-1]
+        else:
+            ip = base64.b16decode(ip)
+        ip = socket.inet_ntop(socket.AF_INET, ip)
+    else:
+        ip = base64.b16decode(ip)
+        if sys.byteorder == 'little':
+            pack = struct.pack('>4I', *struct.unpack('<4I', ip))
+        else:
+            pack = struct.pack('<4I', *struct.unpack('<4I', ip))
+        ip = socket.inet_ntop(socket.AF_INET6, pack)
+    return (ip, port)
+
+def remove_empty(array):
+    return [x for x in array if x != '']
+
+def read_proc_file(path):
+    '''Read the table of TCP connections and remove header'''
+    f = open(path, 'r')
+    content = f.readlines()
+    content.pop(0)
+    f.close()
+    return content
+
+def get_yum_package_owner(yb, arg):
+    pkgs = yb.rpmdb.getProvides(arg)
+    if not pkgs:
+        return None
+    else:
+        return (pkgs.keys())[0]
+
+def get_pid_of_inode(inode):
+    '''
+    Retrieve process pid by checking every process, looking for
+    one using the given inode
+    '''
+    for item in glob.glob(os.path.join('/proc', '[0-9]*', 'fd', '[0-9]*')):
+        try:
+            if re.search(inode, os.readlink(item)):
+                return item.split('/')[2]
+        except:
+            pass
+    return None
+
+def read_proc_net_tcp(path):
+    netstat = []
+    content = read_proc_file(path)
+    for line in content:
+        line_array = remove_empty(line.split(' ')) 
+        l_host, l_port = convert_ip_port(line_array[1])
+        r_host, r_port = convert_ip_port(line_array[2])
+        tcp_id = line_array[0]
+        state = STATE[line_array[3]]
+        uid = pwd.getpwuid(int(line_array[7]))[0]
+        inode = line_array[9]
+        pid = get_pid_of_inode(inode)
+        if pid is None:
+            pid = '?'
+        try:
+            exe = os.readlink(os.path.join('/proc', pid, 'exe'))
+        except:
+            exe = None
+        conn = { 'pid': pid, 'path':exe, 'state':state, 'uid':uid,
+                 'tcp_id':tcp_id, 'local_addr':l_host, 'local_port':l_port }
+        netstat.append(conn)
+    return netstat
+
+def main():
+    warn = []
+    module = AnsibleModule(argument_spec = dict())
+    netstat = []
+    pkgmgr = PackageManager()
+    if pkgmgr.pkgmgr == 'generic':
+        warn.append("Cannot determine package ownership on platform: %s" % platform.platform())
+    for proc in PROC_TCP:
+        netstat.extend(read_proc_net_tcp(proc))
+    for svc in netstat:
+        if svc['state'] != 'LISTEN':
+            continue
+        if svc['local_addr'] == '127.0.0.1':
+            continue
+        pkg = None
+        if svc['path']:
+            pkg = pkgmgr.get_package_owner(svc['path'])
+        if pkgmgr.pkgmgr != 'generic':
+            if pkg is None and svc['path'] is not None:
+                warn.append('%s, listening on %s, not owned by a package' 
+                            % (svc['path'], svc['local_port']))
+#        warn.append("%s (pid %s, user %s) listening on %s" % (
+#            svc['path'] or "'unknown'", svc['pid'], svc['uid'], svc['local_port']
+#            ))
+    module.exit_json(
+            msg = '\n'.join(warn),
+            descr = 'check network services',
+            changed = False
+    )
+
+# import module snippets
+from ansible.module_utils.basic import *
+main()

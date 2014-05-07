@@ -1,0 +1,122 @@
+#!/usr/bin/python
+
+# Written by Stephen Fromm <sfromm@gmail.com>
+# (C) 2013-2014 University of Oregon
+#
+# This file is part of Ansible
+#
+# Ansible is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# Ansible is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with Ansible.  If not, see <http://www.gnu.org/licenses/>.
+
+DOCUMENTATION = '''
+---
+module: signed_pkgs
+short_description: check for packages without gpg signature
+description:
+     - Checks all installed packages for any without a GPG signature.
+       For additional reference, see https://lwn.net/Articles/461237/
+version_added: "NA"
+options:
+  exclude:
+    description:
+      - A list of package names to exclude from the package signature check
+    required: false
+    default: none
+author: Stephen Fromm
+'''
+
+EXAMPLES = '''
+- signed_pkgs: exclude=starlord
+'''
+
+import platform
+
+try:
+    import yum
+    import rpmUtils
+    HAVE_YUM = True
+except ImportError:
+    HAVE_YUM = False
+
+EXCLUDE = []
+
+class PackageManager(object):
+    ''' generic class for a generic package manager '''
+    pkgmgr = 'generic'
+
+    def __new__(cls, *arguments, **keyword):
+        subclass = cls
+        for sc in PackageManager.__subclasses__():
+            if os.path.exists(os.path.join('/usr/bin', sc.pkgmgr)):
+                subclass = sc
+        return super(cls, subclass).__new__(subclass, *arguments, **keyword)
+
+    def __init__(self):
+        pass
+
+    def get_package_list(self):
+        return []
+
+    def is_signed(self, pkg):
+        return False
+
+class YumManager(PackageManager):
+    ''' implementation of generic PackageManager '''
+    pkgmgr = 'yum'
+
+    def __init__(self):
+        self.yb = yum.YumBase()
+
+    def get_package_list(self):
+        ''' returns a list of rpmsack.RPMInstalledPackage objects '''
+        return self.yb.rpmdb.returnPackages()
+
+    def is_signed(self, pkg):
+        ''' check signature of pkg '''
+        # The sig tuple is: sigtype, sigdate, sigid
+        # Error code 101 means it is not signed.
+        error, sig = rpmUtils.miscutils.getSigInfo(pkg.hdr)
+        if error == 101:
+            return False
+        else:
+            return True
+
+def main():
+    warn = []
+    module = AnsibleModule(
+            argument_spec = dict(
+                exclude=dict(required=False, default=EXCLUDE)
+                )
+            )
+    global pkgmgr
+    global exclude
+    pkgmgr = PackageManager()
+    exclude = module.params['exclude']
+    if isinstance(exclude, basestring):
+        exclude = exclude.split(',')
+    if pkgmgr.pkgmgr == 'generic':
+        warn.append("Not implemented for platform: %s" % platform.platform())
+    for p in pkgmgr.get_package_list():
+        if p.name in exclude:
+            continue
+        if not pkgmgr.is_signed(p):
+            warn.append('package %s is not signed' % p)
+    module.exit_json(
+            msg = '\n'.join(warn),
+            descr = 'check packages are signed',
+            changed = False
+    )
+
+# import module snippets
+from ansible.module_utils.basic import *
+main()

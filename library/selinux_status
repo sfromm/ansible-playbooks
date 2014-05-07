@@ -1,0 +1,81 @@
+#!/usr/bin/python
+
+# Written by Stephen Fromm <sfromm@gmail.com>
+# (C) 2013 University of Oregon
+#
+# This file is part of Ansible
+#
+# Ansible is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# Ansible is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with Ansible.  If not, see <http://www.gnu.org/licenses/>.
+
+DOCUMENTATION = '''
+---
+module: selinux_status
+short_description: check whether selinux is enabled and enforcing
+description:
+     - Checks whether selinux is enabled on a host and then whether it
+       is in enforcing mode.
+version_added: "NA"
+options: NA
+author: Stephen Fromm
+'''
+
+EXAMPLES = '''
+- action: selinux_status
+'''
+
+import os
+
+try:
+    import selinux
+    HAVE_SELINUX=True
+except ImportError:
+    HAVE_SELINUX=False
+
+SELINUX_MODE = { 1: 'enforcing', 0: 'permissive', -1: 'disabled' }
+
+def main():
+    warn = []
+    module = AnsibleModule(argument_spec = dict())
+    if not HAVE_SELINUX:
+        warn.append('selinux is disabled')
+    else:
+        if not selinux.is_selinux_enabled():
+            warn.append('selinux is disabled')
+        try:
+            (rc, configmode) = selinux.selinux_getenforcemode()
+            if rc == 0:
+                if configmode != 1:
+                    warn.append('selinux configured mode: %s' % SELINUX_MODE[configmode])
+            else:
+                warn.append('could not determine configured selinux mode')
+        except OSError, e:
+            warn.append('could not determine configured selinux mode')
+        try:
+            (rc, configmode) = selinux.selinux_getenforcemode()
+            if rc == 0:
+                if configmode != 1:
+                    warn.append('selinux running mode: %s' % SELINUX_MODE[configmode])
+            else:
+                warn.append('could not determine current selinux mode')
+        except OSError, e:
+            warn.append('could not determine current selinux mode')
+    module.exit_json(
+            msg = '\n'.join(warn),
+            descr = 'check selinux configuration',
+            changed = False
+    )
+
+# import module snippets
+from ansible.module_utils.basic import *
+main()

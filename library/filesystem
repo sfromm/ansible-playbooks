@@ -1,0 +1,224 @@
+#!/usr/bin/python
+
+# Written by Stephen Fromm <sfromm@gmail.com>
+# (C) 2013-2014 University of Oregon
+#
+# This file is part of Ansible
+#
+# Ansible is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# Ansible is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with Ansible.  If not, see <http://www.gnu.org/licenses/>.
+
+DOCUMENTATION = '''
+---
+module: filesystem
+short_description: check filesystem
+description:
+     - Check filesystem for a number of quirks, including file owned by user not
+       in user database, owned by group not in group database, executable that is
+       world or group writable, executable not owned by a package, suid executable,
+       fails the package manager's verification (eg rpm -Va), world writable directory
+       without the sticky bit.
+version_added: "NA"
+options:
+  exclude:
+    description:
+      - A list of file paths to not examine
+    required: false
+    default: none
+  include:
+    description:
+      - A list of file paths to include in file system checks
+    required: false
+    default: none
+author: Stephen Fromm
+'''
+
+EXAMPLES = '''
+# Run filesystem check; exclude /dev and /proc
+- filesystem: exclude=/dev,/proc
+'''
+
+INCLUDE = ["/", "/usr", "/var"]
+EXCLUDE = [
+        "/dev",
+        "/proc",
+        "/home",
+        "/usr/src",
+        "/srv",
+        "/var/lib/misc",
+        "/var/lib/mock"
+        ]
+
+import grp
+import pwd
+try:
+    import yum
+    HAVE_YUM = True
+except ImportError:
+    HAVE_YUM = False
+
+class PackageManager(object):
+    ''' generic class for a generic package manager '''
+    pkgmgr = 'generic'
+
+    def __new__(cls, *arguments, **keyword):
+        sublcass = cls
+        for sc in PackageManager.__subclasses__():
+            if os.path.exists(os.path.join('/usr/bin', sc.pkgmgr)):
+                subclass = sc
+        return super(cls, subclass).__new__(subclass, *arguments, **keyword)
+    def __init__(self):
+        pass
+
+    def get_package_owner(self, path):
+        pass
+
+    def verify_package(self, pkg, path):
+        pass
+
+class YumManager(PackageManager):
+    ''' implementation of generic PackageManager '''
+    pkgmgr = 'yum'
+
+    def __init__(self):
+        self.yb = yum.YumBase()
+
+    def get_package_owner(self, path):
+        pkgs = self.yb.rpmdb.getProvides(path)
+        if not pkgs:
+            return None
+        else:
+            return (pkgs.keys())[0].name
+
+    def get_package_info(self, pkg):
+        return self.yb.rpmdb.searchNevra(name='%s' % (pkg))
+
+    def get_package_tuple(self, pkg):
+        p = self.get_package_info(pkg)
+        if len(p) > 0:
+            return p[0].pkgtup
+        else:
+            return None
+
+    def verify_package(self, pkg):
+        warn = {}
+        pkgtup = self.get_package_tuple(pkg)
+        yip = self.yb.getInstalledPackageObject(pkgtup)
+        results = yip.verify()
+        for pkg_file in results.keys():
+            for n in results[pkg_file]:
+                if n.message != 'missing but ok':
+                    if pkg_file not in warn:
+                        warn[pkg_file] = []
+                    warn[pkg_file].append(n.message)
+        return warn
+
+def walk_path( path):
+    warn = []
+    for root, dirnames, filenames in os.walk(path):
+        dirnames[:] = [
+                d for d in dirnames
+                if not os.path.ismount(os.path.join(root,d)) and
+                   os.path.join(root, d) not in include
+                ]
+        if root in exclude:
+            return warn
+        for file_path in filenames:
+            warn.extend(check_object(os.path.join(root, file_path)))
+        for d in dirnames:
+            subdir = root
+            subdir = os.path.join(subdir, d)
+            warn.extend(check_object(subdir))
+    return warn
+
+def check_object(path):
+    warn = []
+    if path in exclude:
+        return warn
+    try:
+        uid = os.lstat(path).st_uid
+        pwd.getpwuid(uid)
+    except KeyError, e:
+        warn.append("%s owner %s not in user database" % (path, uid))
+    try:
+        gid = os.lstat(path).st_gid
+        grp.getgrgid(gid)
+    except KeyError, e:
+        warn.append("%s group owner %s not in group database" % (path, gid))
+    mode = os.lstat(path).st_mode
+    if stat.S_ISREG(mode):
+        pkg = pkgmgr.get_package_owner(path)
+        if mode & stat.S_IWOTH:
+            warn.append("%s is world writable" % (path))
+        if mode & (stat.S_IXUSR|stat.S_IXGRP|stat.S_IXOTH):
+            if mode & stat.S_IWOTH:
+                warn.append("%s is executable and world writable" % (path))
+            elif mode & stat.S_IWGRP:
+                warn.append("%s is executable and group writable" % (path))
+            if not pkg:
+                warn.append("%s is executable and not owned by a package" % (path))
+                if mode & stat.S_ISUID:
+                    warn.append("%s is suid executable" % (path))
+            else:
+                if pkg not in pkg_verify:
+                    pkg_verify[pkg] = pkgmgr.verify_package(pkg)
+                if path in pkg_verify[pkg]:
+                    for w in pkg_verify[pkg][path]:
+                        warn.append("%s: %s" % (path, w))
+
+    if stat.S_ISDIR(mode):
+        if mode & stat.S_IWOTH and not mode & stat.S_ISVTX:
+            warn.append("directory %s is world writable and does not have sticky bit set." % (path))
+    if stat.S_ISLNK(mode):
+        link_path = os.readlink(path)
+        if not os.path.exists(path):
+            warn.append("%s points to non-existent file %s" % (path, link_path))
+    return warn
+
+def main():
+    warn = []
+    module = AnsibleModule(
+            argument_spec = dict(
+                include=dict(required=False, default=INCLUDE),
+                exclude=dict(required=False, default=EXCLUDE)
+                )
+            )
+    global pkgmgr
+    global include
+    global exclude
+    global pkg_verify
+    pkg_verify = {}
+    pkgmgr = PackageManager()
+    if pkgmgr.pkgmgr == 'generic':
+        module.exit_json(
+                warn = "Not implemented for platform: %s" % platform.platform(),
+                descr = 'check filesystem',
+                changed = False
+        )
+    include = module.params['include']
+    exclude = module.params['exclude']
+    if isinstance(include, basestring):
+        include = include.split(',')
+    if isinstance(exclude, basestring):
+        exclude = exclude.split(',')
+    for path in include:
+        warn.extend(walk_path(path))
+    module.exit_json(
+            msg = '\n'.join(warn),
+            descr = 'check filesystem',
+            changed = False
+    )
+
+# import module snippets
+from ansible.module_utils.basic import *
+main()

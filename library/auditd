@@ -1,0 +1,103 @@
+#!/usr/bin/python
+
+# Written by Stephen Fromm <sfromm@gmail.com>
+# (C) 2013-2014 University of Oregon
+#
+# This file is part of Ansible
+#
+# Ansible is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# Ansible is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with Ansible.  If not, see <http://www.gnu.org/licenses/>.
+
+DOCUMENTATION = '''
+---
+module: auditd
+short_description: check auditd
+description:
+     - Check auditd for a couple things.  First, verify that it is running.
+       Second, check that auditd has rules loaded to audit the running 
+       system.
+version_added: "NA"
+options:
+  auditd_pidfile:
+    description:
+      - Alternate location of pidfile for auditd.  Defaults 
+        to /var/run/auditd.pid.
+    required: false
+    default: /var/run/auditd.pid
+author: Stephen Fromm
+'''
+
+EXAMPLES = '''
+# Run auditd check
+- action: auditd
+'''
+
+AUDITD_PIDFILE = '/var/run/auditd.pid'
+
+def get_file_content(path):
+    data = None
+    if os.path.exists(path) and os.access(path, os.R_OK):
+        data = open(path).read().strip()
+        if len(data) == 0:
+            data = None
+    return data
+
+def is_pid_auditd(pid):
+    is_auditd = False
+    cmdline = get_file_content(os.path.join('/proc', pid, 'cmdline'))
+    if cmdline is not None and 'auditd' == cmdline:
+        is_auditd = True
+    return is_auditd
+
+def main():
+    warn = []
+    module = AnsibleModule(
+        argument_spec = dict(
+            auditd_pidfile=dict(required=False, default=AUDITD_PIDFILE)
+        )
+    )
+    auditd_pidfile = module.params['auditd_pidfile']
+    auditd_pid = ''
+    found_auditd = False
+
+    if not os.path.exists(auditd_pidfile):
+        warn.append('auditd pid file does not exist')
+    else:
+        auditd_pid = get_file_content(auditd_pidfile).strip()
+
+    args = ['/usr/bin/pgrep', 'auditd']
+    rc, out, err = module.run_command(args, check_rc=True)
+    if auditd_pid:
+        if auditd_pid in out and not is_pid_auditd(auditd_pid):
+            found_auditd = True
+
+    if not found_auditd:
+        for pid in out.splitlines():
+            if is_pid_auditd(pid):
+                found_auditd = True
+        if not found_auditd:
+            warn.append('auditd appears to not be running')
+
+    args = ['/sbin/auditctl', '-l']
+    rc, out, err = module.run_command(args, check_rc=True)
+    if 'No rules' in out:
+        warn.append('auditd has no rules')
+    module.exit_json(
+            msg = '\n'.join(warn),
+            descr = 'check auditd',
+            changed = False
+            )
+
+# import module snippets
+from ansible.module_utils.basic import *
+main()
