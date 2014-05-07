@@ -13,12 +13,12 @@
   tasks:
 
     - name: Set recent flag for dns any query
-      action: command /sbin/iptables -A $chain -p udp --dport 53
-              -m string --from 50 --algo bm --hex-string '$dnsanyhex'
+      action: command /sbin/iptables -A {{chain}} -p udp --dport 53
+              -m string --from 50 --algo bm --hex-string '{{dnsanyhex}}'
               -m recent --set --name dnsanyquery
 
-    - name: Drop dns any query if it exceeds $hitcount in $seconds seconds
-      action: command /sbin/iptables -A $chain -p  udp --dport 53
-              -m string --from 50 --algo bm --hex-string '$dnsanyhex'
+    - name: Drop dns any query if it exceeds {{hitcount}} in {{seconds}} seconds
+      action: command /sbin/iptables -A {{chain}} -p  udp --dport 53
+              -m string --from 50 --algo bm --hex-string '{{dnsanyhex}}'
               -m recent --name dnsanyquery 
-              --rcheck --seconds $seconds --hitcount $hitcount -j DROP
+              --rcheck --seconds {{seconds}} --hitcount {{hitcount}} -j DROP
