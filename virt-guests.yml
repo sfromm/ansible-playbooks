@@ -9,9 +9,11 @@
   tasks:
       - name: start libvirtd
         service: name=libvirtd state=started enabled=yes
+        register: libvirtd
 
       - name: wait for libvirtd to get up
         pause: seconds=30
+        when: libvirtd.changed
 
       - name: get list of vms
         virt: command=list_vms
@@ -21,8 +23,9 @@
         command: virt-install -n {{item.name}}
                  -r {{ item.mem }} 
                  --vcpus {{ item.cpu }} 
-                 -l {{ item.url }} 
-                 --os-type linux 
+                 --location {{ item.url }}
+                 --os-type {{ item.os.type }}
+                 --os-variant {{ item.os.variant }}
                  --network network=default 
                  --graphics vnc
                  --{{item.virt_hypervisor}} 

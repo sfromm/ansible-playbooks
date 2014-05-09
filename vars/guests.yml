@@ -6,6 +6,9 @@ guests:
       mem: 768
       virt_type: kvm
       virt_hypervisor: hvm
+      os:
+          type: linux
+          variant: fedora19
       disk:
           size: 5
           path: /var/lib/libvirt/images
@@ -15,6 +18,9 @@ guests:
       mem: 768
       virt_type: kvm
       virt_hypervisor: hvm
+      os:
+          type: linux
+          variant: rhel6
       disk:
           size: 5
           path: /var/lib/libvirt/images
@@ -27,3 +33,15 @@ guests:
 #      disk:
 #          size: 5
 #          path: /var/lib/libvirt/images
+    - name: win7
+      url: /path/to/win7.iso
+      cpu: 1
+      mem: 1024
+      virt_type: kvm
+      virt_hypervisor: hvm
+      os:
+          type: win
+          variant: win7
+      disk:
+          size: 18
+          path: /var/lib/libvirt/images
