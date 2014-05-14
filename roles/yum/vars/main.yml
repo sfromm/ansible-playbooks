@@ -2,8 +2,8 @@ epel_server: epel.osuosl.org
 elrepo_server: elrepo.org
 epel_6_release: epel-release-6-8.noarch.rpm
 epel_5_release: epel-release-5-4.noarch.rpm
-elrepo_6_release: elrepo-release-6-4.el6.elrepo.noarch.rpm
-elrepo_5_release: elrepo-release-5-3.el5.elrepo.noarch.rpm
+elrepo_6_release: elrepo-release-6-6.el6.elrepo.noarch.rpm
+elrepo_5_release: elrepo-release-5-5.el5.elrepo.noarch.rpm
 dell_server: linux.dell.com
 dell_repo_url: /repo/hardware/latest
 dell_rpm_name: dell-omsa-repository
