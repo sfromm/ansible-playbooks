@@ -17,5 +17,5 @@ emacs_addon_git:
       url: https://github.com/yoshiki/yaml-mode.git
     - name: twittering-mode
       url: https://github.com/hayamiz/twittering-mode.git
-    - name: offlineimap-el
-      url: git://git.naquadah.org/offlineimap-el.git
+#    - name: offlineimap-el
+#      url: git://git.naquadah.org/offlineimap-el.git
