@@ -1,5 +1,5 @@
 ---
-- name: install libvirt guests via virt-install
+- name: manage libvirt guests
   user: root
   hosts: all
 
@@ -21,16 +21,16 @@
 
       - name: create vm
         command: virt-install -n {{item.name}}
-                 -r {{ item.mem }} 
-                 --vcpus {{ item.cpu }} 
+                 -r {{ item.mem }}
+                 --vcpus {{ item.cpu }}
                  --location {{ item.url }}
                  --os-type {{ item.os.type }}
                  --os-variant {{ item.os.variant }}
-                 --network network=default 
+                 --network network=default
                  --graphics vnc
-                 --{{item.virt_hypervisor}} 
-                 --virt-type {{ item.virt_type }} 
-                 --disk size={{item.disk.size}},path={{item.disk.path}}/{{item.name}}.img 
+                 --{{item.virt_hypervisor}}
+                 --virt-type {{ item.virt_type }}
+                 --disk size={{item.disk.size}},path={{item.disk.path}}/{{item.name}}.img
                  --noautoconsole
         when: item.name not in virt_vms.list_vms
         with_items: guests
