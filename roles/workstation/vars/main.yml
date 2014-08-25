@@ -1,25 +1,64 @@
 ---
 workstation_repos:
-    - rpm: http://rpm.livna.org/livna-release.rpm 
+    - rpm: http://rpm.livna.org/livna-release.rpm
       filename: livna.repo
     - rpm: http://download1.rpmfusion.org/free/fedora/rpmfusion-free-release-stable.noarch.rpm
       filename: rpmfusion-free.repo
     - rpm: http://download1.rpmfusion.org/nonfree/fedora/rpmfusion-nonfree-release-stable.noarch.rpm
       filename: rpmfusion-nonfree.repo
 workstation_packages:
+# general utilities
     - ansible
     - antiword
     - aspell
     - atop
+    - colordiff
+    - cowsay
+    - dstat
+    - git
+    - gitk
+    - hddtemp
+    - htop
+    - iotop
+    - irssi
+    - kernel-tools
+    - lsof
+    - minicom
+    - mpc
+    - mpd
+    - mutt
+    - powertop
+    - screen
+    - smartmontools
+    - strace
+    - sysfsutils
+    - tcpdump
+    - tcptraceroute
+    - telnet
+    - tmux
+    - tuned
+    - urlview
+    - usbutils
+    - yum-utils
+# devel-related
+    - python-alembic
+    - python-dateutil
+    - python-nose
+    - python-peewee
+    - python-sqlalchemy
+    - python-inotify
+# fonts
     - bitstream-vera-sans-fonts
     - bitstream-vera-sans-mono-fonts
     - bitstream-vera-serif-fonts
-    - colordiff
-    - cowsay
+    - levien-inconsolata-fonts
+    - terminus-fonts
+    - texlive-tex-gyre
+    - texlive-titlesec
+# desktop env
     - cpanspec
     - ctags
     - dconf-editor
-    - dstat
     - gconf-editor
     - empathy
     - epiphany
@@ -27,8 +66,6 @@ workstation_packages:
     - fuse
     - fuse-sshfs
     - gconf-editor
-    - git
-    - gitk
     - gnome-power-manager
     - gnome-shell-extension-alternate-tab
     - gnome-shell-extension-alternative-status-menu
@@ -36,23 +73,14 @@ workstation_packages:
     - gnome-shell-extension-places-menu
     - gnome-themes-standard
     - gnome-tweak-tool
-    - hddtemp
-    - htop
-    - iotop
-    - irssi
     - keepassx
-    - kernel-tools
-    - levien-inconsolata-fonts
     - libreoffice-base
     - libreoffice-calc
     - libreoffice-emailmerge
     - libreoffice-impress
     - libreoffice-writer
-    - lsof
     - mbrowse
-    - minicom
     - mtr-gtk
-    - mutt
     - nautilus-open-terminal
     - nmap
     - openssh-askpass
@@ -61,40 +89,27 @@ workstation_packages:
     - perltidy
     - perl-ExtUtils-MakeMaker
     - perl-Perl-Critic
-    - powertop
-    - python-alembic
-    - python-dateutil
-    - python-nose
-    - python-sqlalchemy
-    - python-inotify
     - rpmdevtools
     - seahorse
-    - screen
-    - smartmontools
-    - strace
-    - sysfsutils
-    - subversion
-    - terminus-fonts
-    - texlive-tex-gyre
-    - texlive-titlesec
-    - tcpdump
-    - tcptraceroute
-    - telnet
     - thunderbird
-    - tmux
-    - tuned
-    - urlview
-    - usbutils
     - vim-X11
     - vim-enhanced
     - wget
     - whatmask
     - whois
     - wireshark-gnome
-    - xchat-gnome
-    - xterm
-    - yum-utils
     - zenity
+# openbox related packages
+    - conky
+    - obconf
+    - openbox
+    - nitrogen
+    - pnmixer
+    - tint2
+    - xcompmgr
+# general x11 utilities
+    - wmctrl
+    - xdotool
 # the following depend on 3rd party repos
     - ffmpeg
     - gstreamer-ffmpeg
