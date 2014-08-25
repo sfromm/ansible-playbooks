@@ -5,7 +5,7 @@
   connection: local
 
   vars:
-      mkfs: mkfs.ext4
+      mkfs: mkfs.xfs
 
   vars_prompt:
       - name: dev
@@ -27,7 +27,7 @@
         template: src=templates/encrypt-pass.j2 dest={{tmp.stdout}}
 
       - name: encrypt disk
-        shell: cat {{tmp.stdout}} | 
+        shell: cat {{tmp.stdout}} |
                cryptsetup --verbose --batch-mode luksFormat {{dev}}
 
       - name: open encrypted disk
@@ -39,4 +39,3 @@
       - name: purge temp file
         command: shred -z -u {{tmp.stdout}}
 
-      
