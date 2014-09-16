@@ -4,7 +4,7 @@
   with_items: emacs_d_dirs
 
 - name: clone emacs addons
-  git: repo={{item.url}} dest={{user_home}}/{{emacs_pkg_dir}}/{{item.name}}
+  git: repo={{item.url}} dest={{user_home}}/{{emacs_pkg_dir}}/{{item.name}} accept_hostkey=no
   with_items: emacs_addon_git
   register: boxen_emacs_git
 
