@@ -1,7 +1,7 @@
 ---
 # requires --extra-vars="hostlist='host1;host2;group'
 - name: group hosts based on os family
-  hosts: "{{hostlist}}"
+  hosts: all
   user: root
 
   tasks:
@@ -29,7 +29,7 @@
       command: yum -y update
 
 - name: update rkhunter if installed
-  hosts: "{{hostlist}}"
+  hosts: all
   user: root
   gather_facts: no
 
