@@ -2,21 +2,23 @@
 - name: apply common role to all
   user: root
   hosts: all
-
   roles:
       - common
 
 - name: apply workstation role
   user: root
   hosts: workstation
-
   roles:
       - workstation
-      - java
 
 - name: apply home role
   user: root
   hosts: home
-
   roles:
       - home
+
+- name: apply java role
+  user: root
+  hosts: java_hosts
+  roles:
+      - java
