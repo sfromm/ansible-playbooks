@@ -21,3 +21,10 @@
   user: name={{item.name}} password={{item.password}}
   when: accounts.users is defined and 'password' in item
   with_items: accounts.users
+
+- name: set avatar for user
+  command: install -o {{item.name}} -g {{item.group}}
+           {{item.face}} /home/{{item.name}}/.face
+           creates=/home/{{item.name}}/.face
+  when: "'face' in item"
+  with_items: accounts.users
