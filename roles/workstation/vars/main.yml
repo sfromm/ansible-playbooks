@@ -86,6 +86,7 @@ workstation_packages:
     - perl-Perl-Critic
     - rpmdevtools
     - seahorse
+    - synapse
     - thunderbird
     - vim-X11
     - vim-enhanced
