@@ -26,18 +26,22 @@
         command: mkdir -p {{backup_dest}}
 
       - name: run rsync to target directory
-        command: rsync --archive -P
-                 --human-readable
-                 --relative
-                 --stats
-                 --compress
-                 --numeric-ids
-                 --one-file-system
-                 --delete --delete-excluded
-                 --exclude-from={{rsync_exclude}}
-                 --link-dest={{backup_current}}
-                 --log-file={{backup_dest}}.log
-                 {{ rsync_sources|join(' ') }} {{backup_dest}}
+        command: >
+            rsync
+            --archive -P
+            --human-readable
+            --relative
+            --stats
+            --itemize-changes
+            --compress
+            --numeric-ids
+            --one-file-system
+            --delete
+            --delete-excluded
+            --exclude-from={{rsync_exclude}}
+            --link-dest={{backup_current}}
+            --log-file={{backup_dest}}.log
+            {{ rsync_sources|join(' ') }} {{backup_dest}}
 
       - name: remove symlink current
         file: path={{backup_current}} state=absent
