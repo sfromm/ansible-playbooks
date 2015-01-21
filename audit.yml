@@ -23,3 +23,6 @@
 
       - name: examine filesystem
         filesystem: exclude=/var/lib/ansible
+
+      - name: examine network services
+        action: net_service
