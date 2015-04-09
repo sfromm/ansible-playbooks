@@ -10,19 +10,19 @@
   tasks:
 
       - name: verify auditd configuration
-        action: auditd
+        action: audit_auditd
 
       - name: verify installed packages are gpg signed
         signed_pkgs: exclude={{ignore_pkgs}}
 
       - name: verify iptables/firewall is configured
-        action: iptables
+        action: audit_iptables
 
       - name: verify selinux configuration
         action: selinux_status
 
       - name: examine filesystem
-        filesystem: exclude=/var/lib/ansible
+        action: audit_filesystem
 
       - name: examine network services
-        action: net_service
+        action: audit_net_service
