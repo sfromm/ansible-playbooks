@@ -1,5 +1,5 @@
 ---
-# requires --extra-vars="hostlist='host1;host2;group'
+# Limit how this applies with -l/--limit option
 - name: group hosts based on os family
   hosts: all
   user: root
