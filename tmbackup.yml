@@ -1,14 +1,14 @@
 ---
 - hosts: all
   user: root
-  serial: 10
+  serial: 1
 
   vars:
       age: 30
-      rsync_root: /backup
       rsync_exclude: /usr/local/etc/rsync.exclude
 
 # Be sure to define in inventory:
+# rsync_dest: rsync target
 # rsync_exclude_patterns (a list): patterns to exclude
 # rsync_sources (a list): what to backup
 
@@ -16,17 +16,21 @@
 
       - name: create rsync exclude file
         template: src=templates/rsync.exclude.j2 dest={{rsync_exclude}}
+        delegate_to: tiger.lan
+        when: "'{{inventory_hostname}}' == 'tiger.lan'"
 
       - name: set facts
-        set_fact: backup_dest="{{rsync_root}}/{{ansible_fqdn}}/{{ansible_date_time.iso8601}}"
-                  backup_current="{{rsync_root}}/{{ansible_fqdn}}/current"
-                  backup_host="{{rsync_root}}/{{ansible_fqdn}}"
+        set_fact: backup_dest="{{rsync_dest}}/{{inventory_hostname}}/{{ansible_date_time.iso8601}}"
+                  backup_current="{{rsync_dest}}/{{inventory_hostname}}/current"
+                  backup_host="{{rsync_dest}}/{{inventory_hostname}}"
 
       - name: create {{backup_dest}} directory
         command: mkdir -p {{backup_dest}}
+        delegate_to: tiger.lan
 
       - name: run rsync to target directory
-        command: >
+        delegate_to: tiger.lan
+        shell: >
             rsync
             --archive -P
             --human-readable
@@ -45,9 +49,11 @@
 
       - name: remove symlink current
         file: path={{backup_current}} state=absent
+        delegate_to: tiger.lan
 
       - name: symlink to curent backup
         command: chdir={{backup_host}} ln -sf {{ansible_date_time.iso8601}} current
+        delegate_to: tiger.lan
 
 #      - name: prune old backups
 #        command: find {{backup_host}}
