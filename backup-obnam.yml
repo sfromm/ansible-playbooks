@@ -1,0 +1,53 @@
+---
+# This will install 'obnam' on the control node and
+# perform pull based backups from each of the target nodes
+# to the control node.
+# Requires the following to be defined in inventory:
+# backup:
+#   root: (base of backup target)
+#   exclude:
+#      - a list of paths to exclude
+#   sources:
+#      - a list of paths to backup
+- name: install obnam on control node
+  hosts: localhost
+  user: root
+
+  tasks:
+      - name: install obnam
+        yum: name=obnam state=installed
+        when: ansible_os_family == "RedHat"
+
+      - name: install obnam
+        apt: name=obnam state=installed
+        when: ansible_os_family == "Debian"
+
+- name: backup via obnam
+  hosts: all
+
+  tasks:
+      - set_fact:
+          my_repo:  "{{ backup.root }}/{{ backup.repo }}"
+          my_log:   "{{ backup.root }}/{{ inventory_hostname }}-{{ ansible_date_time.iso8601 }}.log"
+        tags: backup
+
+      - name: perform backup
+        delegate_to: localhost
+        tags: backup
+        command: >
+            obnam
+            --repo {{ my_repo }}
+            --one-file-system
+            --client-name={{ inventory_hostname }}
+            --log={{ my_log }}
+            --exclude-caches
+            --exclude '{{ backup.exclude|join("' --exclude '") }}'
+            backup {{ backup.sources|join(' ') }}
+
+#      - name: verify backup
+#        delegate_to: localhost
+#        shell: >
+#            obnam {{ item }} >> {{ my_log }}
+#        with_items:
+#            - verify {{ my_repo }} {{ backup.sources[0] }}
+
