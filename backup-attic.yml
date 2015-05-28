@@ -1,0 +1,86 @@
+---
+# This will install 'attic' on the control node and
+# perform push based backups from each of the target nodes
+# to the control node.
+# Requires the following to be defined in inventory:
+# backup:
+#   root: (base of backup target)
+#   exclude:
+#      - a list of paths to exclude
+#   sources:
+#      - a list of paths to backup
+- name: backup via attic
+  hosts: all
+  user: root
+
+  vars:
+      ssh_keyfile: "~/.ssh/attic"
+      ssh_keytype: ecdsa
+      ssh_keypass: ""
+      packages:
+          redhat:
+              - python3
+              - python3-pip
+              - openssl-devel
+              - gcc
+              - python3-devel
+              - libacl-devel
+          debian:
+              - python3
+              - python3-pip
+              - libacl1-dev
+      pip:
+          RedHat: python3-pip
+          Debian: pip-3.2
+
+  tasks:
+      - name: install redhat prerequisites
+        yum: name={{ item }} state=present
+        when: ansible_os_family == 'RedHat'
+        with_items: packages.redhat
+
+      - name: install debian prerequisites
+        apt: name={{ item }} state=present
+        when: ansible_os_family == 'Debian'
+        with_items: packages.debian
+
+      - name: install attic via pip
+        pip: name=Attic state=present executable={{ pip[ansible_os_family] }}
+
+      - set_fact:
+          my_attic: "{{ backup.root }}/{{ inventory_hostname }}.attic"
+          my_log:   "{{ backup.log_dir }}/{{ inventory_hostname }}-{{ ansible_date_time.iso8601 }}.log"
+
+      - name: make sure log path exists
+        file: path={{ my_log }} state=directory
+
+      - name: create attic
+        delegate_to: localhost
+        command: >
+            creates={{ my_attic }}
+            attic init {{ my_attic }}
+
+      - name: create backup archive
+        command: >
+            attic create
+            --stats
+            --exclude-caches
+            --exclude '{{ backup.exclude|join("' --exclude '") }}'
+            --do-not-cross-mountpoints
+            {{ my_attic }}::{{ ansible_date_time.iso8601 }}
+            {{ backup.sources|join(' ') }}
+
+      - name: write log info
+        delegate_to: localhost
+        shell: >-
+            attic {{ item }} >> {{ my_log }}
+        with_items:
+            - info {{ my_attic }}
+            - info {{ my_attic }}::{{ ansible_date_time.iso8601 }}
+
+#      - name: create ssh key for backups
+#        delegate_to: localhost
+#        command: >
+#            creates={{ssh_keyfile}}
+#            ssh-keygen -f {{ssh_keyfile}} -t {{ssh_keytype}} -N {{ssh_keypass}}
+#
